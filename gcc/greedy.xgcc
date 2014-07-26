@@ -1,0 +1,258 @@
+LDC 0
+LDF @step
+CONS
+RTN
+
+:step
+LDC 0
+LD 0 1
+LDF @step1
+AP 1
+CONS
+RTN
+
+; world --> dir
+:step1
+LD 0 0
+LD 0 0
+CDR
+CAR
+CDR
+CAR     ; [world] [(x, y)]
+LDF @nextlist
+AP 1    ; [world] [{(x', y'), ...}]
+LD 0 0
+CDR
+CAR
+CDR
+CDR
+CAR
+LDF @rotate
+AP 2
+LDF @evaluate
+AP 2    ; [{value, ...}]
+LDC 0
+LDC -1
+LDC 0
+LDF @select
+AP 4    ; [index]
+LD 0 0
+CDR
+CAR
+CDR
+CDR
+CAR
+LDF @rotateindex
+TAP 2
+
+; world {(x, y), ...} --> {value, ...}
+:evaluate
+LD 0 1
+ATOM
+TSEL @evaluate__done @evaluate__body
+:evaluate__done
+LDC 0
+RTN
+:evaluate__body
+LD 0 0
+CAR
+LD 0 1
+CAR
+LDF @getcell
+AP 2    ; ... [cell]
+; TODO(yuizumi): Get the fruit's status.
+LDC 0
+LDF @evalcell
+AP 2    ; ... [value]
+LD 0 0
+LD 0 1
+CDR
+LDF @evaluate
+AP 2    ; ... [value] [{value, ...}]
+CONS    ; ... [{value, ...}]
+RTN
+
+; cell fruit --> value
+:evalcell
+LD 0 0
+LDC 5
+CGTE
+TSEL @evalcell__poor @evalcell__01234
+:evalcell__01234
+LD 0 0
+LDC 4
+CGTE
+TSEL @evalcell__4 @evalcell__good
+:evalcell__4
+LD 0 1
+TSEL @evalcell__good @evalcell__poor
+:evalcell__good
+LD 0 0
+RTN
+:evalcell__poor
+LDC 0
+RTN
+
+; {value, ...} k max_k max_value default_k --> max_k'
+:select
+LD 0 0
+ATOM
+TSEL @select__done @select__body
+:select__done
+LD 0 2
+RTN
+:select__body
+LD 0 0
+CAR
+LD 0 3
+CGT
+TSEL @select__update @select__retain
+:select__update
+LD 0 0
+CDR
+LD 0 1
+LDC 1
+ADD
+LD 0 1
+LD 0 0
+CAR     ; [{value1, ...}] [k+1] [k] [value0]
+LDF @select
+TAP 4
+:select__retain
+LD 0 0
+CDR
+LD 0 1
+LDC 1
+ADD
+LD 0 2
+LD 0 3  ; [{value1, ...}] [k+1] [max_k] [max_value]
+LDF @select
+TAP 4
+
+; (x, y) --> {(x1, y1), ...}
+:nextlist
+LD 0 0
+CAR
+LD 0 0
+CDR
+LDC 1
+SUB
+CONS    ; [(x, y-1)]
+LD 0 0
+CAR
+LDC 1
+ADD
+LD 0 0
+CDR
+CONS    ; [(x, y-1)] [(x+1, y)]
+LD 0 0
+CAR
+LD 0 0
+CDR
+LDC 1
+ADD
+CONS    ; [(x, y-1)] [(x+1, y)] [(x, y+1)]
+LD 0 0
+CAR
+LDC 1
+SUB
+LD 0 0
+CDR
+CONS    ; [(x, y-1)] [(x+1, y)] [(x, y+1)] [(x-1, y)]
+LDC 0
+CONS
+CONS
+CONS
+CONS
+RTN
+
+; list k --> item
+:getitem
+LD 0 1
+TSEL @getitem__k @getitem__0
+:getitem__0
+LD 0 0
+CAR
+RTN
+:getitem__k
+LD 0 0
+CDR
+LD 0 1
+LDC 1
+SUB
+LDF @getitem
+TAP 2
+
+; map, (x, y) --> cell
+:getcell
+LD 0 1
+CDR
+TSEL @getcell__y @getcell__x
+:getcell__x
+LD 0 0
+CAR
+LD 0 1
+CAR
+LDF @getitem
+TAP 2
+:getcell__y
+LD 0 0
+CDR
+LD 0 1
+CAR
+LD 0 1
+CDR
+LDC 1
+SUB
+CONS
+LDF @getcell
+TAP 2
+
+; items, k --> items
+:rotate
+LD 0 0
+LD 0 1
+LDF @getitem
+AP 2    ; [items[k]]
+LD 0 0
+LD 0 1
+LDC 1
+LDF @rotateindex
+AP 2
+LDF @getitem
+AP 2    ; [items[k]] [items[k+1]]
+LD 0 0
+LD 0 1
+LDC 2
+LDF @rotateindex
+AP 2
+LDF @getitem
+AP 2    ; [items[k]] [items[k+1]] [items[k+2]]
+LD 0 0
+LD 0 1
+LDC 3
+LDF @rotateindex
+AP 2
+LDF @getitem
+AP 2    ; [items[k]] [items[k+1]] [items[k+2]] [items[k+3]]
+LDC 0
+CONS
+CONS
+CONS
+CONS
+RTN
+
+; a b --> (a + b) % 4
+:rotateindex
+LD 0 0
+LD 0 1
+ADD     ; [a + b]
+LD 0 0
+LD 0 1
+ADD
+LDC 4
+DIV
+LDC 4
+MUL     ; [a + b] [(a + b) / 4 * 4]
+SUB
+RTN
