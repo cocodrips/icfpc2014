@@ -35,10 +35,11 @@ def main():
         program.append(line)
 
     for line in program:
-        m = RE_REFERENCE.search(line)
-        if m:
-            line = ''.join([line[:m.start()], defines[m.group(1)], line[m.end():]])
-        sys.stdout.write(line + '\n')
+        index = 0
+        for m in RE_REFERENCE.finditer(line):
+            sys.stdout.write(line[index:m.start()] + defines[m.group(1)])
+            index = m.end()
+        sys.stdout.write(line[index:] + '\n')
 
 
 if __name__ == '__main__':
