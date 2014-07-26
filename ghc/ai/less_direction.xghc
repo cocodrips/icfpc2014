@@ -20,13 +20,24 @@
 #define DIST_Y [109]
 #define DIST_X_2 [110]
 #define DIST_Y_2 [111]
+#define FLOOR_START_MEMORY 112
+#define UP [112]
+#define RIGHT [113]
+#define DOWN [114]
+#define LEFT [115]
+#define BRANCH [116]
+
 #define RADIUS 5
+
 
 
 @my_id
 @ghost_status
-inc [b]
-mov h,b
+mov @VITALITY,a
+mov @DIRECTION,b
+inc [b] ; 今まで行った方向++;
+mov h,b ; debug
+
 
 ;; 自分の座標を知る
 ; 自分のindex
@@ -36,10 +47,67 @@ mov h,b
 ; 代入
 mov @POS_X,a
 mov @POS_Y,b
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;3叉路以上か;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+mov @BRANCH, 0
+;;上
+mov a,@POS_Y
+mov b,@POS_X
+dec a
+@floor ; a = 床の値
+mov @UP,a
+
+jeq @next_up, @UP,0
+	inc @BRANCH
+:next_up
+
+;;右
+mov a, @POS_Y
+mov b, @POS_X
+inc b
+@floor ; a = 床の値
+mov @RIGHT, a
+
+jeq @next_right, @RIGHT,0
+	inc @BRANCH
+:next_right
+
+;;下
+mov a, @POS_Y
+mov b, @POS_X
+inc a
+@floor ; a = 床の値
+mov @DOWN, a
+
+jeq @next_down, @DOWN, 0
+	inc @BRANCH
+:next_down
+
+;;左
+mov a, @POS_Y
+mov b, @POS_X
+dec b
+@floor ; a = 床の値
+mov @LEFT, a
+
+jeq @next_left,@LEFT,0
+	inc @BRANCH
+:next_left
+
+mov a, @BRANCH
+int 8 
+
+;;;;;;;;;3叉路以下;;;;;;;;;;;;
+; jlt @inf, @BRANCH, 3
+
+
 ;; 敵の座標を知る
 @lam_pos
 mov @LAM_POS_X,a
 mov @LAM_POS_Y,b
+
 
 ;;敵との差を知る
 jlt @else_gt_x, @LAM_POS_X, @POS_X
@@ -62,38 +130,44 @@ sub a, @LAM_POS_Y
 :end_gt_y
 mov @DIST_Y, a
 
-mov a, @DIST_X
+
+
+mov a, @DIST_X ;とりあえずいれて
 mov b, @DIST_Y
 
 sub a, @POS_X
 sub b, @POS_Y
 
-mov @DIST_X, a
+mov @DIST_X, a ;Distが決まる
 mov @DIST_Y, b
 
 ;; default ai
-mov a, 255 ;; set max
-mov b, 0
-mov c, 255
+mov e, 255 ;; set max
+mov f, 0
+mov g, 255
+
 
 :loop
-inc c
-jgt @end_if, [c], a
-mov a, [c] ;; minimumの更新
-mov b, c ;;minumumの方向
+inc g
+jgt @end_if, [g], e
+	mov e, [g] ;; minimumの更新
+	mov f, g ;;minumumの方向
 
 :end_if
-jlt @loop,c,3 ;;cが3以下ならループ
+jlt @loop,g,3 ;;cが3以下ならループ
 
-mov a,b ;; aにdirectionを入れる
+mov a,f ;; aにdirectionを入れる
 @direction
 
 :end_haba_if
 
-mov a, [0]
-mov b, [1]
-mov c, [2]
-mov d, [3]
-int 8
+; mov a, [0]
+; mov b, [1]
+; mov c, [2]
+; mov d, [3]
+; int 8
+
+:inf
+
 
 hlt

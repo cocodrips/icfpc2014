@@ -1,25 +1,58 @@
 int 3
 int 6
+mov [107],a
+mov [106],b
 inc [b]
 mov h,b
 int 3
 int 5
 mov [104],a
 mov [105],b
+mov [116], 0
+mov a,[105]
+mov b,[104]
+dec a
+int 7
+mov [112],a
+jeq 18, [112],0
+inc [116]
+mov a, [105]
+mov b, [104]
+inc b
+int 7
+mov [113], a
+jeq 25, [113],0
+inc [116]
+mov a, [105]
+mov b, [104]
+inc a
+int 7
+mov [114], a
+jeq 32, [114], 0
+inc [116]
+mov a, [105]
+mov b, [104]
+dec b
+int 7
+mov [115], a
+jeq 39,[115],0
+inc [116]
+mov a, [116]
+int 8
 int 1
 mov [100],a
 mov [101],b
-jlt 15, [100], [104]
+jlt 48, [100], [104]
 mov a, [100]
 sub a, [104]
-jeq 17, 0, 0
+jeq 50, 0, 0
 mov a, [104]
 sub a, [100]
 mov [108], a
-jlt 22, [101], [105]
+jlt 55, [101], [105]
 mov a, [101]
 sub a, [105]
-jeq 24, 0, 0
+jeq 57, 0, 0
 mov a, [105]
 sub a, [101]
 mov [109], a
@@ -29,19 +62,14 @@ sub a, [104]
 sub b, [105]
 mov [108], a
 mov [109], b
-mov a, 255
-mov b, 0
-mov c, 255
-inc c
-jgt 38, [c], a
-mov a, [c]
-mov b, c
-jlt 34,c,3
-mov a,b
+mov e, 255
+mov f, 0
+mov g, 255
+inc g
+jgt 71, [g], e
+mov e, [g]
+mov f, g
+jlt 67,g,3
+mov a,f
 int 0
-mov a, [0]
-mov b, [1]
-mov c, [2]
-mov d, [3]
-int 8
 hlt
