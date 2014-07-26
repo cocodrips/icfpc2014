@@ -20,7 +20,7 @@ def main():
     defines = {}
     program = []
     for line in sys.stdin:
-        # Strip the command and leading/trailing space.
+        # Strip the comment and leading/trailing space.
         line = line.split(';', 1)[0].strip()
         if not line:
             continue
