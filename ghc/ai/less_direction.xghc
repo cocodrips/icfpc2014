@@ -1,0 +1,99 @@
+#define direction int 0
+#define lam_pos int 1
+#define lam2_pos int 2
+#define my_id int 3
+#define ghost_start_axis int 4
+#define ghost_axis int 5
+#define ghost_status int 6
+#define floor int 7
+
+#define LAM_POS_X [100]
+#define LAM_POS_Y [101]
+#define LAM2_POS_X [102]
+#define LAM2_POS_Y [103]
+
+#define POS_X [104]
+#define POS_Y [105]
+#define DIRECTION [106]
+#define VITALITY [107]
+#define DIST_X [108]
+#define DIST_Y [109]
+#define DIST_X_2 [110]
+#define DIST_Y_2 [111]
+#define RADIUS 5
+
+
+@my_id
+@ghost_status
+inc [b]
+mov h,b
+
+;; 自分の座標を知る
+; 自分のindex
+@my_id
+; 座標 i
+@ghost_axis
+; 代入
+mov @POS_X,a
+mov @POS_Y,b
+;; 敵の座標を知る
+@lam_pos
+mov @LAM_POS_X,a
+mov @LAM_POS_Y,b
+
+;;敵との差を知る
+jlt @else_gt_x, @LAM_POS_X, @POS_X
+mov a, @LAM_POS_X
+sub a, @POS_X
+jeq @end_gt_x, 0, 0
+:else_gt_x
+mov a, @POS_X
+sub a, @LAM_POS_X
+:end_gt_x
+mov @DIST_X, a
+
+jlt @else_gt_y, @LAM_POS_Y, @POS_Y
+mov a, @LAM_POS_Y
+sub a, @POS_Y
+jeq @end_gt_y, 0, 0
+:else_gt_y
+mov a, @POS_Y
+sub a, @LAM_POS_Y
+:end_gt_y
+mov @DIST_Y, a
+
+mov a, @DIST_X
+mov b, @DIST_Y
+
+sub a, @POS_X
+sub b, @POS_Y
+
+mov @DIST_X, a
+mov @DIST_Y, b
+
+;; default ai
+mov a, 255 ;; set max
+mov b, 0
+mov c, 255
+
+:loop
+inc c
+jgt @end_if, [c], a
+mov a, [c] ;; minimumの更新
+mov b, c ;;minumumの方向
+
+:end_if
+jlt @loop,c,3 ;;cが3以下ならループ
+
+mov a,b ;; aにdirectionを入れる
+@direction
+
+:end_haba_if
+
+mov a, [0]
+mov b, [1]
+mov c, [2]
+mov d, [3]
+int 8
+
+hlt

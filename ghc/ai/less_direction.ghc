@@ -1,0 +1,47 @@
+int 3
+int 6
+inc [b]
+mov h,b
+int 3
+int 5
+mov [104],a
+mov [105],b
+int 1
+mov [100],a
+mov [101],b
+jlt 15, [100], [104]
+mov a, [100]
+sub a, [104]
+jeq 17, 0, 0
+mov a, [104]
+sub a, [100]
+mov [108], a
+jlt 22, [101], [105]
+mov a, [101]
+sub a, [105]
+jeq 24, 0, 0
+mov a, [105]
+sub a, [101]
+mov [109], a
+mov a, [108]
+mov b, [109]
+sub a, [104]
+sub b, [105]
+mov [108], a
+mov [109], b
+mov a, 255
+mov b, 0
+mov c, 255
+inc c
+jgt 38, [c], a
+mov a, [c]
+mov b, c
+jlt 34,c,3
+mov a,b
+int 0
+mov a, [0]
+mov b, [1]
+mov c, [2]
+mov d, [3]
+int 8
+hlt
