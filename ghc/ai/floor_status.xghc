@@ -45,9 +45,7 @@
   mov @POS_X, a
   mov @POS_Y, b
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;3叉路以上か;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;Count Branch;;;;;;
   mov @BRANCH, 0
   mov g, 0 ;; i
   mov f, @FLOOR_START_MEMORY
@@ -79,29 +77,29 @@
       jeq @end_up3swich, 0, 0
     :end_up3swich
 
-    ;; debug
-    mov c, 44
-    mov d, 0
-    int 8
-
     @floor ;; a = a, bの床情報を
     mov [f], a ;;床情報を入れる
+
+    ;; その方向にすすめるか
+    jlt @end_count_branch, a, 1
+      inc @BRANCH
+    :end_count_branch
+
+    mov b, @BRANCH
+    int 8
+
     inc g
     inc f
   jlt @start_up3, g, 4
   :end_up3
 
-  ;; debug
+  ;;debug  g,f : used
   mov a, 77
   mov b, @UP
   mov c, @RIGHT
   mov d, @DOWN
   mov e, @LEFT
-  mov f, 0
-  mov g, @BRANCH
-  mov h, 0
+  mov h, @BRANCH
   int 8
-
-
 
 hlt

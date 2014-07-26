@@ -1,0 +1,289 @@
+#define direction int 0
+#define lam_pos int 1
+#define lam2_pos int 2
+#define my_id int 3
+#define ghost_start_axis int 4
+#define ghost_axis int 5
+#define ghost_status int 6
+#define floor int 7
+
+#define LAM_POS_X [100]
+#define LAM_POS_Y [101]
+#define LAM2_POS_X [102]
+#define LAM2_POS_Y [103]
+
+#define POS_X [104]
+#define POS_Y [105]
+#define DIRECTION [106]
+#define VITALITY [107]
+#define DIST_X [108]
+#define DIST_Y [109]
+#define DIST_X_2 [110]
+#define DIST_Y_2 [111]
+#define FLOOR_START_MEMORY 112
+#define UP [112]
+#define RIGHT [113]
+#define DOWN [114]
+#define LEFT [115]
+#define BRANCH [116]
+#define IS_RIGHT [117]
+#define IS_DOWN [118]
+
+#define RADIUS 5
+
+
+
+@my_id
+@ghost_status
+mov @VITALITY,a
+mov @DIRECTION,b
+inc [b] ; 今まで行った方向++;
+mov h,b ; debug
+
+
+;; 自分の座標を知る
+; 自分のindex
+@my_id
+; 座標 i
+@ghost_axis
+; 代入
+mov @POS_X,a
+mov @POS_Y,b
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;3叉路以上か;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  mov @BRANCH, 0
+  mov g, 0 ;; i
+  mov f, @FLOOR_START_MEMORY
+
+  ;; FOR
+  :start_up3
+  jgt @end_up3, g, 3
+    ;;初期化
+    mov a,@POS_X
+    mov b,@POS_Y
+
+    ;;SWICH 方向
+    jeq @s0, g, 0 
+    jeq @s1, g, 1
+    jeq @s2, g, 2
+    jeq @s3, g, 3
+
+    :s0
+      dec b
+      jeq @end_up3swich, 0, 0
+    :s1
+      inc a
+      jeq @end_up3swich, 0, 0
+    :s2
+      inc b
+      jeq @end_up3swich, 0, 0
+    :s3
+      dec a
+      jeq @end_up3swich, 0, 0
+
+    :end_up3swich
+    @floor ;; a = a, bの床情報を
+    mov [f], a ;;床情報を入れる
+    inc g
+    inc f
+  jlt @start_cp, g, 3
+  :end_up3
+
+  ;; debug
+  mov a, 77
+  mov b, @UP
+  mov c, @RIGHT
+  mov d, @DOWN
+  mov e, @LEFT
+  mov f, 0
+  mov g, @BRANCH
+  mov h, 0
+  int 8
+
+
+; ;;上
+; mov a,@POS_X
+; mov b,@POS_Y
+; dec b
+; @floor ; a = 床の値
+; mov @UP, a
+
+; jeq @next_up, @UP,0
+;   inc @BRANCH
+; :next_up
+
+; ;;右
+; mov a, @POS_Y
+; mov b, @POS_X
+; inc b
+; @floor ; a = 床の値
+; mov @RIGHT, a
+
+; jeq @next_right, @RIGHT,0
+;   inc @BRANCH
+; :next_right
+
+; ;;下
+; mov a, @POS_Y
+; mov b, @POS_X
+; inc a
+; @floor ; a = 床の値
+; mov @DOWN, a
+
+; jeq @next_down, @DOWN, 0
+;   inc @BRANCH
+; :next_down
+
+; ;;左
+; mov a, @POS_Y
+; mov b, @POS_X
+; dec b
+; @floor ; a = 床の値
+; mov @LEFT, a
+
+; jeq @next_left,@LEFT,0
+;   inc @BRANCH
+; :next_left
+
+
+
+
+
+;;;;;;;;;3叉路以下;;;;;;;;;;;;
+jlt @random_work, @BRANCH, 3
+
+  ;; debug
+  mov a, 0
+  mov b, @BRANCH
+  int 8
+
+
+
+;;;;;;; 敵の座標を知る ;;;;;;;;
+  @lam_pos
+  mov @LAM_POS_X,a
+  mov @LAM_POS_Y,b
+
+;;;; 敵の位置 1:True ;;;;
+  ;; 右に敵がいるか;;
+    jgt @gt_lambda_x, @LAM_POS_X, @POS_X
+      mov @IS_RIGHT, 0
+      jeq 0, 0, @end_gt_lambda_x
+    :gt_lambda_x
+      mov @IS_RIGHT, 1
+    :end_gt_lambda_x
+
+  ;; 下に敵がいるか;;
+    jgt @gt_lambda_y, @LAM_POS_Y, @POS_Y
+      mov @IS_DOWN, 0
+      jeq 0, 0, @end_gt_lambda_y
+    :gt_lambda_y
+      mov @IS_DOWN, 1
+    :end_gt_lambda_y
+
+  ;; debug
+  mov a, 1
+  mov b, @IS_RIGHT
+  mov c, @IS_DOWN
+  int 8
+
+
+;;;;;;;;;行ける方向;;;;;;;;;;;;
+mov g, 0;; i
+mov c, 0;; max
+mov d, 0;; max direction
+
+:start_cp
+mov e, @FLOOR_START_MEMORY ;;floor memory
+jgt @end_calc_priority, g, 3
+  jeq @pass_cp, @DIRECTION, g ; 同じ方向以外なら
+    ;; floor
+
+    jgt @pass_up, c, [e] ;; max更新
+      mov c, [e]
+      mov d, g
+    :pass_up
+  :pass_cp
+  inc g
+  inc e
+jlt @start_cp, g, 3
+:end_calc_priority
+
+mov a, d
+@direction
+jeq @fin, 0, 0
+
+
+
+
+
+
+
+
+; ;; 敵の座標を知る
+; @lam_pos
+; mov @LAM_POS_X,a
+; mov @LAM_POS_Y,b
+
+
+; ;;敵との差を知る
+; jlt @else_gt_x, @LAM_POS_X, @POS_X
+; mov a, @LAM_POS_X
+; sub a, @POS_X
+; jeq @end_gt_x, 0, 0
+; :else_gt_x
+; mov a, @POS_X
+; sub a, @LAM_POS_X
+; :end_gt_x
+; mov @DIST_X, a
+
+; jlt @else_gt_y, @LAM_POS_Y, @POS_Y
+; mov a, @LAM_POS_Y
+; sub a, @POS_Y
+; jeq @end_gt_y, 0, 0
+; :else_gt_y
+; mov a, @POS_Y
+; sub a, @LAM_POS_Y
+; :end_gt_y
+; mov @DIST_Y, a
+
+
+
+; mov a, @DIST_X ;とりあえずいれて
+; mov b, @DIST_Y
+
+; sub a, @POS_X
+; sub b, @POS_Y
+
+; mov @DIST_X, a ;Distが決まる
+; mov @DIST_Y, b
+
+; ;; default ai
+:random_work
+mov e, 255 ;; set max
+mov f, 0
+mov g, 255
+
+
+:loop
+inc g
+jgt @end_if, [g], e
+  mov e, [g] ;; minimumの更新
+  mov f, g ;;minumumの方向
+
+:end_if
+jlt @loop,g,3 ;;cが3以下ならループ
+
+mov a,f ;; aにdirectionを入れる
+@direction
+
+:end_haba_if
+
+
+:fin
+
+
+
+hlt
