@@ -59,3 +59,16 @@ nosetests.xml
 *.ear
 
 
+### https://raw.github.com/github/gitignore/master/ocaml.gitignore
+
+*.annot
+*.cmo
+*.cma
+*.cmi
+*.a
+*.o
+*.cmx
+*.cmxs
+*.cmxa
+
+
