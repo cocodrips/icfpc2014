@@ -37,39 +37,32 @@ int 7
 mov [115], a
 jeq 39,[115],0
 inc [116]
+jlt 57, [116], 3
 mov a, [116]
 int 8
-int 1
-mov [100],a
-mov [101],b
-jlt 48, [100], [104]
-mov a, [100]
-sub a, [104]
-jeq 50, 0, 0
-mov a, [104]
-sub a, [100]
-mov [108], a
-jlt 55, [101], [105]
-mov a, [101]
-sub a, [105]
-jeq 57, 0, 0
-mov a, [105]
-sub a, [101]
-mov [109], a
-mov a, [108]
-mov b, [109]
-sub a, [104]
-sub b, [105]
-mov [108], a
-mov [109], b
+mov g, 0
+mov c, 0
+mov d, 0
+mov e, 112
+jgt 54, g, 3
+jeq 51, [106], g
+jgt 51, c, [e]
+mov c, [e]
+mov d, g
+inc g
+inc e
+jlt 45, g, 3
+mov a, d
+int 0
+jeq 67, 0, 0
 mov e, 255
 mov f, 0
 mov g, 255
 inc g
-jgt 71, [g], e
+jgt 64, [g], e
 mov e, [g]
 mov f, g
-jlt 67,g,3
+jlt 60,g,3
 mov a,f
 int 0
 hlt

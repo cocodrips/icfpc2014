@@ -96,52 +96,85 @@ jeq @next_left,@LEFT,0
 	inc @BRANCH
 :next_left
 
+
+
+;;;;;;;;;3叉路以下;;;;;;;;;;;;
+jlt @random_work, @BRANCH, 3
 mov a, @BRANCH
 int 8 
 
-;;;;;;;;;3叉路以下;;;;;;;;;;;;
-; jlt @inf, @BRANCH, 3
+;;;;;;;;;行ける方向;;;;;;;;;;;;
+mov g, 0;; i
+mov c, 0;; max
+mov d, 0;; max direction
 
+:start_cp
+mov e, @FLOOR_START_MEMORY ;;floor memory
+jgt @end_calc_priority, g, 3
+	jeq @pass_cp, @DIRECTION, g ; 同じ方向以外なら
+		;; floor
 
-;; 敵の座標を知る
-@lam_pos
-mov @LAM_POS_X,a
-mov @LAM_POS_Y,b
+		jgt @pass_up, c, [e] ;; max更新
+			mov c, [e]
+			mov d, g
+		:pass_up
+	:pass_cp
+	inc g
+	inc e
+jlt @start_cp, g, 3
+:end_calc_priority
 
-
-;;敵との差を知る
-jlt @else_gt_x, @LAM_POS_X, @POS_X
-mov a, @LAM_POS_X
-sub a, @POS_X
-jeq @end_gt_x, 0, 0
-:else_gt_x
-mov a, @POS_X
-sub a, @LAM_POS_X
-:end_gt_x
-mov @DIST_X, a
-
-jlt @else_gt_y, @LAM_POS_Y, @POS_Y
-mov a, @LAM_POS_Y
-sub a, @POS_Y
-jeq @end_gt_y, 0, 0
-:else_gt_y
-mov a, @POS_Y
-sub a, @LAM_POS_Y
-:end_gt_y
-mov @DIST_Y, a
+mov a, d
+@direction
+jeq @fin, 0, 0
 
 
 
-mov a, @DIST_X ;とりあえずいれて
-mov b, @DIST_Y
 
-sub a, @POS_X
-sub b, @POS_Y
 
-mov @DIST_X, a ;Distが決まる
-mov @DIST_Y, b
 
-;; default ai
+
+
+; ;; 敵の座標を知る
+; @lam_pos
+; mov @LAM_POS_X,a
+; mov @LAM_POS_Y,b
+
+
+; ;;敵との差を知る
+; jlt @else_gt_x, @LAM_POS_X, @POS_X
+; mov a, @LAM_POS_X
+; sub a, @POS_X
+; jeq @end_gt_x, 0, 0
+; :else_gt_x
+; mov a, @POS_X
+; sub a, @LAM_POS_X
+; :end_gt_x
+; mov @DIST_X, a
+
+; jlt @else_gt_y, @LAM_POS_Y, @POS_Y
+; mov a, @LAM_POS_Y
+; sub a, @POS_Y
+; jeq @end_gt_y, 0, 0
+; :else_gt_y
+; mov a, @POS_Y
+; sub a, @LAM_POS_Y
+; :end_gt_y
+; mov @DIST_Y, a
+
+
+
+; mov a, @DIST_X ;とりあえずいれて
+; mov b, @DIST_Y
+
+; sub a, @POS_X
+; sub b, @POS_Y
+
+; mov @DIST_X, a ;Distが決まる
+; mov @DIST_Y, b
+
+; ;; default ai
+:random_work
 mov e, 255 ;; set max
 mov f, 0
 mov g, 255
@@ -167,7 +200,6 @@ mov a,f ;; aにdirectionを入れる
 ; mov d, [3]
 ; int 8
 
-:inf
-
+:fin
 
 hlt
