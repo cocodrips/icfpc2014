@@ -1,0 +1,59 @@
+#define direction int 0
+#define lam_pos int 1
+#define lam2_pos int 2
+#define my_id int 3
+#define ghost_start_axis int 4
+#define ghost_axis int 5
+#define ghost_status int 6
+#define floor int 7
+
+#define LAM_POS_X [100]
+#define LAM_POS_Y [101]
+#define LAM2_POS_X [102]
+#define LAM2_POS_Y [103]
+
+#define POS_X [104]
+#define POS_Y [105]
+#define DIRECTION [106]
+#define VITALITY [107]
+#define DIST_X [108]
+#define DIST_Y [109]
+#define DIST_X_2 [110]
+#define DIST_Y_2 [111]
+#define FLOOR_START_MEMORY 112
+#define UP [112]
+#define RIGHT [113]
+#define DOWN [114]
+#define LEFT [115]
+#define BRANCH [116]
+
+#define RADIUS 5
+
+
+@my_id
+@ghost_status
+mov @VITALITY,a
+mov @DIRECTION,b
+inc [b] ; 今まで行った方向++;
+mov h,b ; debug
+
+
+;;;; random_work ;;;;;
+  :random_work
+  mov e, 255 ;; set max
+  mov f, 0
+  mov g, 255
+
+  :loop
+  inc g
+  jgt @end_if, [g], e
+    mov e, [g] ;; minimumの更新
+    mov f, g ;;minumumの方向
+
+  :end_if
+  jlt @loop, g, 3 ;;cが3以下ならループ
+
+  mov a,f ;; aにdirectionを入れる
+  @direction
+
+  :end_haba_if
