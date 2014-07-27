@@ -1,0 +1,105 @@
+#define direction int 0
+#define lam_pos int 1
+#define lam2_pos int 2
+#define my_id int 3
+#define ghost_start_axis int 4
+#define ghost_axis int 5
+#define ghost_status int 6
+#define floor int 7
+
+#define LAM_POS_X [100]
+#define LAM_POS_Y [101]
+#define LAM2_POS_X [102]
+#define LAM2_POS_Y [103]
+
+#define POS_X [104]
+#define POS_Y [105]
+#define DIRECTION [106]
+#define VITALITY [107]
+#define DIST_X [108]
+#define DIST_Y [109]
+#define DIST_X_2 [110]
+#define DIST_Y_2 [111]
+#define FLOOR_START_MEMORY 112
+#define UP [112]
+#define RIGHT [113]
+#define DOWN [114]
+#define LEFT [115]
+#define BRANCH [116]
+#define IS_RIGHT [117]
+#define IS_DOWN [118]
+
+#define RADIUS 5
+
+
+;;;; 過去の方向 ;;;;
+  @my_id
+  @ghost_status
+  mov @VITALITY,a
+  mov @DIRECTION,b
+  inc [b] ; 今まで行った方向++;
+
+;;;;; 自分の座標を知る ;;;;
+  @my_id
+  @ghost_axis
+  mov @POS_X, a
+  mov @POS_Y, b
+
+;;;;;Count Branch;;;;;;
+  mov @BRANCH, 0
+  mov g, 0 ;; i
+  mov f, @FLOOR_START_MEMORY
+
+  ;; FOR
+  :start_up3
+  jgt @end_up3, g, 3
+    ;;初期化
+    mov a,@POS_X
+    mov b,@POS_Y
+
+    ;;SWICH 方向
+    jeq @s0, g, 0 
+    jeq @s1, g, 1
+    jeq @s2, g, 2
+    jeq @s3, g, 3
+
+    :s0
+      dec b
+      jeq @end_up3swich, 0, 0
+    :s1
+      inc a
+      jeq @end_up3swich, 0, 0
+    :s2
+      inc b
+      jeq @end_up3swich, 0, 0
+    :s3
+      dec a
+      jeq @end_up3swich, 0, 0
+    :end_up3swich
+
+    @floor ;; a = a, bの床情報を
+    mov [f], a ;;床情報を入れる
+
+    ;; その方向にすすめるか
+    jlt @end_count_branch, a, 1
+      inc @BRANCH
+    :end_count_branch
+
+    mov b, @BRANCH
+    int 8
+
+    inc g
+    inc f
+  jlt @start_up3, g, 4
+  :end_up3
+
+  ;;debug  g,f : used
+  mov a, 77
+  mov b, @UP
+  mov c, @RIGHT
+  mov d, @DOWN
+  mov e, @LEFT
+  mov h, @BRANCH
+  int 8
+
+hlt
