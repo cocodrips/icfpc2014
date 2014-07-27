@@ -1,0 +1,41 @@
+#define direction int 0
+#define lam_pos int 1
+#define lam2_pos int 2
+#define my_id int 3
+#define ghost_start_axis int 4
+#define ghost_axis int 5
+#define ghost_status int 6
+#define floor int 7
+#define STACK_SIZE 120
+
+#define POINTER [255]
+;; 敵の位置を取得 ;;
+  @lam_pos
+  mov f, @POINTER
+  mov [f], a
+
+  mov f, @POINTER
+  add f, @STACK_SIZE
+  mov [f], b
+
+  ; mov a, @POINTER
+  ; mov a, [a]
+  ; mov b, 120
+  ; add b, @POINTER
+  ; mov b, [b]
+
+  ; mov h, @POINTER
+  ; int 8
+
+
+
+
+;; ポインタ++ ;;
+  inc @POINTER
+  ;; if @pointer > 120 then @pointer = 0
+  jlt @registed, @POINTER, @STACK_SIZE
+    mov @POINTER, 0
+  :registed
+
+
+hlt
