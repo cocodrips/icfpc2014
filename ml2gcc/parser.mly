@@ -81,8 +81,8 @@ expr:
   | expr GT expr            { EGt ($1, $3) }
   | expr GTE expr           { EGte ($1, $3) }
   | expr NEQ expr           { EIf (EEq ($1, $3), EConst 0, EConst 1) }
-  | expr LT expr            { EGte ($3, $1) }
-  | expr LTE expr           { EGt ($3, $1) }
+  | expr LT expr            { EGt ($3, $1) }
+  | expr LTE expr           { EGte ($3, $1) }
   | CAR expr                { ECar $2 }
   | CDR expr                { ECdr $2 }
   | DEBUG expr              { EDebug $2 }
