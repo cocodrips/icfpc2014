@@ -15,7 +15,7 @@ let rec make_ld env name n i = match env with
 		then GLd (n, i)
 		else make_ld (ss::es) name n (i + 1)
 	  | [] -> make_ld es name (n + 1) 0)
-  | [] -> raise (Compile_error "Variable not found.")
+  | [] -> raise (Compile_error ("Variable not found: " ^ name ^ "."))
 
 let rec range start last =
   if start == last then []
