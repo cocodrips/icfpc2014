@@ -1,7 +1,8 @@
 {
   open Expr
   open Parser
-  exception Parse_error
+
+  exception Lexing_error of string
 }
 
 let digit = ['0' - '9']
@@ -11,7 +12,7 @@ let alpha = ['a' - 'z' 'A' - 'Z' '0' - '9' '_']
 rule token = parse
   | "(*"        { comments 0 lexbuf }
   | [' ' '\t']* { token lexbuf }
-  | '\n'        { token lexbuf }
+  | '\n'        { (Expr.line := !Expr.line + 1; token lexbuf) }
   | digit+ as n { INT (int_of_string n) }
   | "let"       { LET }
   | "in"        { IN }
@@ -54,7 +55,7 @@ rule token = parse
   | "false"     { INT 0 }
   | small(alpha*) as id { ID id }
   | eof         { EOF }
-  | _           { raise Parse_error }
+  | _           { raise (Lexing_error (string_of_pos !Expr.line)) }
 
 and comments depth = parse
   | "*)"
@@ -65,6 +66,6 @@ and comments depth = parse
 		  comments (depth-1) lexbuf
 	  }
   | "(*"	{ comments (depth+1) lexbuf }
-  | eof		{ raise Parse_error }
+  | eof		{ raise (Lexing_error "Unclosed comment.") }
   | '\n'    { comments depth lexbuf }
   | _		{ comments depth lexbuf }

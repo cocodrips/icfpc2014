@@ -1,5 +1,7 @@
 %{
   open Expr
+  exception Parse_error of string
+  let p exp = (!Expr.line, exp)
 %}
 
 %token <int> INT
@@ -37,7 +39,7 @@
 %nonassoc ID INT RPAR LPAR
 
 %start expr
-%type <Expr.expr> expr
+%type <(Expr.pos * Expr.pos Expr.expr)> expr
 
 %%
 
@@ -64,38 +66,39 @@ pattern:
 
 expr:
   | u_expr                             { $1 }
-  | LET let_ands IN expr %prec LET     { ELetIn ($2, $4) }
-  | LET REC let_ands IN expr %prec REC { ERecIn ($3, $5) }
-  | expr CONS expr                { ECons ($1, $3) }
-  | MATCH expr WITH match_pattern { EMatch ($2, $4) }
-  | FUN ids ARROW expr            { EFun ($2, $4) }
-  | IF expr THEN expr ELSE expr  { EIf ($2, $4, $6) }
-  | expr AND2 expr          { EIf ($1, $3, EConst 0) }
-  | expr OR2 expr           { EIf ($1, EConst 1, $3) }
-  | NOT expr                { EIf ($2, EConst 0, EConst 1) }
-  | expr PLUS expr          { EAdd ($1, $3) }
-  | expr MINUS expr         { ESub ($1, $3) }
-  | expr TIMES expr         { EMul ($1, $3) }
-  | expr DIV expr           { EDiv ($1, $3) }
-  | expr EQ expr            { EEq ($1, $3) }
-  | expr GT expr            { EGt ($1, $3) }
-  | expr GTE expr           { EGte ($1, $3) }
-  | expr NEQ expr           { EIf (EEq ($1, $3), EConst 0, EConst 1) }
-  | expr LT expr            { EGt ($3, $1) }
-  | expr LTE expr           { EGte ($3, $1) }
-  | CAR expr                { ECar $2 }
-  | CDR expr                { ECdr $2 }
-  | DEBUG expr              { EDebug $2 }
-  | ATOM expr               { EAtom $2 }
-  | u_expr u_exprs          { EApp ($1, $2) }
-  | MINUS expr %prec UMINUS { ESub ((EConst 0), $2) }
+  | LET let_ands IN expr %prec LET     { p (ELetIn ($2, $4)) }
+  | LET REC let_ands IN expr %prec REC { p (ERecIn ($3, $5)) }
+  | expr CONS expr                { p (ECons ($1, $3)) }
+  | MATCH expr WITH match_pattern { p (EMatch ($2, $4)) }
+  | FUN ids ARROW expr            { p (EFun ($2, $4)) }
+  | IF expr THEN expr ELSE expr  { p (EIf ($2, $4, $6)) }
+  | expr AND2 expr          { p (EIf ($1, $3, p (EConst 0))) }
+  | expr OR2 expr           { p (EIf ($1, p (EConst 1), $3)) }
+  | NOT expr                { p (EIf ($2, p (EConst 0), p (EConst 1))) }
+  | expr PLUS expr          { p (EAdd ($1, $3)) }
+  | expr MINUS expr         { p (ESub ($1, $3)) }
+  | expr TIMES expr         { p (EMul ($1, $3)) }
+  | expr DIV expr           { p (EDiv ($1, $3)) }
+  | expr EQ expr            { p (EEq ($1, $3)) }
+  | expr GT expr            { p (EGt ($1, $3)) }
+  | expr GTE expr           { p (EGte ($1, $3)) }
+  | expr NEQ expr           { p (EIf (p (EEq ($1, $3)), p (EConst 0), p (EConst 1))) }
+  | expr LT expr            { p (EGt ($3, $1)) }
+  | expr LTE expr           { p (EGte ($3, $1)) }
+  | CAR expr                { p (ECar $2) }
+  | CDR expr                { p (ECdr $2) }
+  | DEBUG expr              { p (EDebug $2) }
+  | ATOM expr               { p (EAtom $2) }
+  | u_expr u_exprs          { p (EApp ($1, $2)) }
+  | MINUS expr %prec UMINUS { p (ESub (p (EConst 0), $2)) }
+  | error                   { raise (Parse_error (string_of_pos !line)) }
 ;
 
 u_expr:
-  | INT                     { EConst $1 }
+  | INT                     { p (EConst $1) }
   | LPAR expr RPAR          { $2 }
-  | ID                      { EVar $1 }
-  | LLIST RLIST             { EConst 0 }
+  | ID                      { p (EVar $1) }
+  | LLIST RLIST             { p (EConst 0) }
   | LLIST list RLIST        { $2 }
   | LPAR tuple RPAR         { $2 }
 ;
@@ -107,7 +110,7 @@ let_ands:
 
 let_arg_body:
   | EQ expr        { $2 }
-  | ids EQ expr    { EFun ($1, $3) }
+  | ids EQ expr    { p(EFun ($1, $3)) }
 ;
 
 ids:
@@ -121,13 +124,13 @@ u_exprs:
 ;
 
 tuple:
-  | expr COMMA tuple  { ECons($1, $3) }
-  | expr COMMA expr   { ECons($1, $3) }
+  | expr COMMA tuple  { p (ECons ($1, $3)) }
+  | expr COMMA expr   { p (ECons ($1, $3)) }
 ;
 
 list:
-  | expr SEMI list    { ECons($1, $3) }
-  | expr              { ECons($1, EConst 0) }
+  | expr SEMI list    { p (ECons($1, $3)) }
+  | expr              { p (ECons($1, p (EConst 0))) }
 ;
 
 %%

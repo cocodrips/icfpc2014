@@ -1,5 +1,6 @@
 open Expr
 open Gcc
+open List
 
 exception Compile_error of string
 
@@ -9,20 +10,22 @@ let next_id () = (id_num := !id_num + 1; ("_" ^ (string_of_int !id_num)))
 
 let closures = ref []
 
-let rec make_ld env name n i = match env with
+let rec make_ld env name p n i = match env with
   | e::es -> (match e with
 	  | s::ss -> if s = name
 		then GLd (n, i)
-		else make_ld (ss::es) name n (i + 1)
-	  | [] -> make_ld es name (n + 1) 0)
-  | [] -> raise (Compile_error ("Variable not found: " ^ name ^ "."))
+		else make_ld (ss::es) name p n (i + 1)
+	  | [] -> make_ld es name p (n + 1) 0)
+  | [] ->
+	let mess =  (string_of_pos p) ^ "Variable not found: " ^ name ^ "." in
+	raise (Compile_error mess)
 
 let rec range start last =
   if start == last then []
   else if start < last then start::(range (start + 1) last)
   else start::(range (start - 1) last)
 
-let rec compile2 exp env =
+let rec compile2 (pos, exp) env =
   let cp exp = compile2 exp env in
   match exp with
 	| EConst value -> [GLdc value]
@@ -43,23 +46,22 @@ let rec compile2 exp env =
 	  let body = (compile2 body (names::env)) in
 	  (closures := (!closures) @ [GLabel label] @ body @ [GRtn];
 	   [GLdf label])
-	| EVar name -> [make_ld env name 0 0]
-	| EApp (a, b) -> (List.flatten (List.map cp b)) @ (cp a) @ [GAp (List.length b)]
+	| EVar name -> [make_ld env name pos 0 0]
+	| EApp (a, b) -> (flatten (map cp b)) @ (cp a) @ [GAp (length b)]
 	| ELetIn (lets, result) ->
-	  let names = List.map fst lets in
-	  let gccs = List.map (fun x -> cp (snd x)) lets in
+	  let gccs = map (fun x -> cp (snd x)) lets in
 	  let label = next_id () in
-	  let body = (compile2 result (names::env)) in
+	  let body = (compile2 result ((map fst lets)::env)) in
 	  (closures := (!closures) @ [GLabel label] @ body @ [GRtn];
-	   (List.flatten gccs) @ [GLdf label; (GAp (List.length names))])
+	   (flatten gccs) @ [GLdf label; (GAp (length lets))])
 	| ERecIn (lets, result) ->
-	  let let_count = List.length lets in
-	  let names = List.map fst lets in
+	  let let_count = length lets in
+	  let new_env = (map fst lets)::env in
 	  let label = next_id () in
-	  let body = (compile2 result (names::env)) in
-	  let dummy_env = List.map (fun _ -> GLdc 0) names in
+	  let body = (compile2 result new_env) in
+	  let dummy_env = List.map (fun _ -> GLdc 0) lets in
 	  let enter_body = [GLdf label; (GAp let_count)] in
-	  let rec_compile x = compile2 (snd x) (names::env) in
+	  let rec_compile x = compile2 (snd x) new_env in
 	  let funs_gcc = List.flatten (List.map rec_compile lets) in
 	  let rewrite_env = List.map (fun i -> GSt (0, i - 1)) (range let_count 0) in
 	  (closures := (!closures) @ [GLabel label] @ funs_gcc @ rewrite_env @ body @ [GRtn];
