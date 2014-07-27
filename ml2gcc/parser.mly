@@ -46,6 +46,7 @@ let_funs:
 ;
 
 let_fun:
+  | EQ expr        { $2 }
   | ids EQ expr    { EFun ($1, $3) }
 ;
 
