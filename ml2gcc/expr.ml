@@ -22,6 +22,7 @@ and expr =
   | ECons of expr * expr
   | EFun of (name list) * expr
   | EApp of expr * (expr list)
+  | EDebug of expr
 
 and pattern =
   | PAny

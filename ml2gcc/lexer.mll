@@ -24,6 +24,7 @@ rule token = parse
   | "car"       { CAR }
   | "cdr"       { CDR }
   | "atom"      { ATOM }
+  | "debug"     { DEBUG }
   | "fun"       { FUN }
   | "rec"       { REC }
   | "and"       { AND }

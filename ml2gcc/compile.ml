@@ -37,6 +37,7 @@ let rec compile2 exp env =
 	| ECar a -> (cp a) @ [GCar]
 	| ECdr a -> (cp a) @ [GCdr]
 	| EAtom a -> (cp a) @ [GAtom]
+	| EDebug a -> (cp a) @ [GDbug; GLdc 0]
 	| EFun (names, body) ->
 	  let label = next_id () in
 	  let body = (compile2 body (names::env)) in

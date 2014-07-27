@@ -9,7 +9,7 @@
 %token MATCH WITH OR UNDER
 %token FUN REC ARROW
 %token IF ELSE THEN
-%token CAR CDR ATOM
+%token CAR CDR ATOM DEBUG
 %token MINUS PLUS TIMES DIV
 %token AND2 OR2 NOT
 %token GT GTE EQ LT LTE NEQ
@@ -42,7 +42,8 @@
 %%
 
 match_pattern:
-  | pattern ARROW expr OR match_pattern { ($1, $3)::$5 }
+  | OR pattern ARROW expr OR match_pattern { ($2, $4)::$6 }
+  | pattern ARROW expr OR match_pattern    { ($1, $3)::$5 }
   | pattern ARROW expr { [($1, $3)] }
 ;
 
@@ -84,6 +85,7 @@ expr:
   | expr LTE expr           { EGt ($3, $1) }
   | CAR expr                { ECar $2 }
   | CDR expr                { ECdr $2 }
+  | DEBUG expr              { EDebug $2 }
   | ATOM expr               { EAtom $2 }
   | u_expr u_exprs          { EApp ($1, $2) }
   | MINUS expr %prec UMINUS { ESub ((EConst 0), $2) }
