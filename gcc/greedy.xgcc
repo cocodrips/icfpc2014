@@ -90,7 +90,7 @@ TSEL @evalcell__good @evalcell__poor
 LD 0 0
 RTN
 :evalcell__poor
-LDC 0
+LDC 1
 RTN
 
 ; {value, ...} k max_k max_value default_k --> max_k'
