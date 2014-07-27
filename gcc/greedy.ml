@@ -19,32 +19,16 @@ let main world0 ghosts =
       cell
   in
 
-  (*
-  let rec find_best_index values k best_k best_value =
-    if (atom values) then
-      best_k
-    else if (best_value >= (car values)) then
-      find_best_index (cdr values) (k + 1) best_k best_value
-    else
-      find_best_index (cdr values) (k + 1) k (car values)
-  in
-  *)
-
   let find_best_index values =
-    let a = (car values) and
-        b = (car (cdr values)) and
-        c = (car (cdr (cdr values))) and
-        d = (car (cdr (cdr (cdr values)))) in
-    if ((a >= b) && (a >= c) && (a >= d)) then
-      0
-    else if ((b >= a) && (b >= c) && (b >= d)) then
-      1
-    else if ((c >= a) && (c >= b) && (c >= d)) then
-      2
-    else if ((d >= a) && (d >= b) && (d >= c)) then
-      3
-    else
-      -1
+    let rec doit values k best_k best_value =
+      if (atom values) then
+        best_k
+      else if (best_value >= (car values)) then
+        doit (cdr values) (k + 1) best_k best_value
+      else
+        doit (cdr values) (k + 1) k (car values)
+    in
+    (doit values 0 (-1) 0)
   in
 
   let decide world =
