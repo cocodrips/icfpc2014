@@ -29,11 +29,11 @@
 %nonassoc IF THEN ELSE
 %left AND2 OR2
 %nonassoc NOT
-%nonassoc EQ NEQ
+%nonassoc EQ NEQ GT GTE LT LTE
 %left PLUS MINUS
 %left TIMES DIV
 %nonassoc UMINUS
-%left APP
+%left APP CAR CDR ATOM DEBUG
 %nonassoc ID INT RPAR LPAR
 
 %start expr
