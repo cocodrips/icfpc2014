@@ -29,20 +29,31 @@
 #define TURN [117]
 #define IS_RIGHT [118]
 #define IS_DOWN [119]
+; 120 から126
+#define BRANCH_STACK_START 120
+#define BRANCH_1_X [121]
+#define BRANCH_1_Y [122]
+#define BRANCH_1_D [123]
+#define BRANCH_2_X [124]
+#define BRANCH_2_Y [125]
+#define BRANCH_2_D [126]
+#define DIRECTION_START 130
+#define DIRECTION_ALLOWED [130]
+;; 130-133
 
 #define RADIUS 5
 
 ;;;; TURN RESET ;;;;
 ; TODO
 
-;;;; 過去の方向 ;;;;
+;;;;;;;過去の方向;;;;;;;
   @my_id
   @ghost_status
   mov @VITALITY,a
   mov @DIRECTION,b
   inc [b] ; 今まで行った方向++;
 
-;;;;; 自分の座標を知る ;;;;
+;;;;;自分の座標を知る;;;;
   @my_id
   @ghost_axis
   mov @POS_X, a
@@ -50,6 +61,11 @@
 
 ;;;;;Count Branch;;;;;;
   mov @BRANCH, 0
+  mov [130], 0
+  mov [131], 0
+  mov [132], 0
+  mov [133], 0
+
   mov g, 0 ;; i
   mov f, @FLOOR_START_MEMORY
 
@@ -82,11 +98,16 @@
   
     ;; START regist floor
       ;; if 敵のポジション
-        jeq @not_lamda_pos_2, a, @LAM_POS_X
-          jeq @not_lamda_pos_2, b, @LAM_POS_Y
-              mov [f], 5
-            jeq @regist_floor, 0, 0
-        :not_lamda_pos_2
+        jeq @equal_x, a, @LAM_POS_X
+          jeq @not_lamda_pos, 0, 0
+          :equal_x
+          jeq @equal_xy, b, @LAM_POS_Y
+            jeq @not_lamda_pos, 0, 0
+            :equal_xy
+              mov [f], 7
+              jeq @regist_floor, 0, 0
+
+        :not_lamda_pos
       ;; そうじゃなければ
         @floor ;; a = a, bの床情報を
         mov [f], a ;;床情報を入れる
@@ -95,9 +116,12 @@
 
       :regist_floor
 
-
     ;; その方向にすすめるか
-    jlt @end_count_branch, a, 1
+    jlt @end_count_branch, [f], 1
+      ;; 進める方向のフラグを1に
+      mov a, @DIRECTION_START
+      add a, g
+      mov [a], 1
       inc @BRANCH
     :end_count_branch
     
@@ -106,8 +130,7 @@
   jlt @start_up3, g, 4
   :end_up3
 
-
-  ;;debug  g,f : used
+  ;debug  g,f : used
   ; mov a, 77
   ; mov b, @UP
   ; mov c, @RIGHT
@@ -117,7 +140,7 @@
   ; int 8
 
 
-;;;BRANCHじゃなければ終了;;;;;;
+;;BRANCHじゃなければ終了;;
   jlt @fin, @BRANCH, 3
 
 ;;;;;;; 敵の座標を知る ;;;;;;;;
@@ -162,77 +185,137 @@
   ; mov d, 0
   ; int 8
 
+;;;;;;;; 袋小路脱出 ;;;;;;;;;;;
+  jlt @not_dead_end, @BRANCH_2_X, @BRANCH_1_X
+    jgt @not_dead_end, @BRANCH_2_X, @BRANCH_1_X
+      jlt @not_dead_end, @BRANCH_2_Y, @BRANCH_1_Y
+        jgt @not_dead_end, @BRANCH_2_Y, @BRANCH_1_Y
+          jlt @not_dead_end, @POS_X, @BRANCH_1_X
+            jgt @not_dead_end, @POS_X, @BRANCH_1_X
+              jlt @not_dead_end, @POS_Y, @BRANCH_1_Y
+                jgt @not_dead_end, @POS_Y, @BRANCH_1_Y
+                  mov a, @DIRECTION_START
+                  add a, @BRANCH_2_D
+                  mov [a], 0
+                  mov a, @DIRECTION_START
+                  add a, @BRANCH_1_D
+                  mov [a], 0
 
+                  ;; DEBUG
+                  ; mov a, [130]
+                  ; mov b, [131]
+                  ; mov c, [132]
+                  ; mov d, [133]
+                  ; mov e, 0
+                  ; mov f, 0
+                  ; mov g, 0
+                  ; mov h, @BRANCH
+                  ; int 8
+                  
+                  mov a, @DIRECTION_START
+                  :start_dead
+                  jeq @end_dead, [a], 0
+                    sub a, @DIRECTION_START
+                    @direction
+                    jeq @fin, 0, 0
+                  :end_dead
+                  inc a
+                  jlt @start_dead, a, 134
+
+
+
+
+
+
+:not_dead_end
 
 ;;;;;;;;;行ける方向;;;;;;;;;;;;
-mov c, 0;; max
-mov d, 0;; max direction
+  mov c, 0;; max
+  mov d, 0;; max direction
 
-mov e, 0 ;;方向の優先度
-mov f, @FLOOR_START_MEMORY ;floor
-mov g, 0;; i
+  mov e, 0 ;;方向の優先度
+  mov f, @FLOOR_START_MEMORY ;floor
+  mov g, 0;; i
 
 
-:start_calc_priority
-jgt @end_calc_priority, g, 3
-  mov a, 2
-  xor a, @DIRECTION
-  jeq @pass_calc_priority, a, g ; 戻らないなら
-    mov a, [f]
-    ;; if maximum <= floor_value:
-    jgt @pass_up, c, a   
+  :start_calc_priority
+  jgt @end_calc_priority, g, 3
+    mov a, 2
+    xor a, @DIRECTION
+    jeq @pass_calc_priority, a, g ; 戻らないなら
+      mov a, [f]
+      ;; if maximum <= floor_value:
+      jgt @pass_up, c, a   
 
-      ;;SWICH 方向の優先度
-      mov b, 2
-      jeq @p0, g, 0
-      jeq @p1, g, 1
-      jeq @p2, g, 2
-      jeq @p3, g, 3
+        ;;SWICH 方向の優先度
+          mov b, 2
+          jeq @p0, g, 0
+          jeq @p1, g, 1
+          jeq @p2, g, 2
+          jeq @p3, g, 3
 
-      :p0 ;;上
-        sub b, @IS_DOWN
-        jeq @end_p_swich, 0, 0
-      :p1 ;; 右
-        mov b, @IS_RIGHT 
-        jeq @end_p_swich, 0, 0
-      :p2 ;; 下
-        mov b, @IS_DOWN
-        jeq @end_p_swich, 0, 0
-      :p3 ;; 左
-        sub b, @IS_RIGHT
-        jeq @end_p_swich, 0, 0
-      :end_p_swich
+          :p0 ;;上
+            sub b, @IS_DOWN
+            jeq @end_p_swich, 0, 0
+          :p1 ;; 右
+            mov b, @IS_RIGHT 
+            jeq @end_p_swich, 0, 0
+          :p2 ;; 下
+            mov b, @IS_DOWN
+            jeq @end_p_swich, 0, 0
+          :p3 ;; 左
+            sub b, @IS_RIGHT
+            jeq @end_p_swich, 0, 0
+          :end_p_swich
 
-      ;; if maxi < floor value
-      ;; TODO:下のブロックと最適化
-      jeq @eq_priority, c, a
-        mov c, a
-        mov d, g
-        mov e, b
-        
-        mov h, 88
-        int 8 
-        
-        jeq @pass_up, 0, 0
+        ;; if maxi < floor value
+        ;; TODO:下のブロックと最適化
+          jeq @eq_priority, c, a
+            mov c, a
+            mov d, g
+            mov e, b
+            
+            jeq @pass_up, 0, 0
 
-      ;; elif maxi == floor value
-      :eq_priority
-        jlt @pass_up, b, e
-          mov d, g
-          mov e, b
+          ;; elif maxi == floor value
+          :eq_priority
+            jlt @pass_up, b, e
+              mov d, g
+              mov e, b
+      :pass_up
+    :pass_calc_priority
+    inc g
+    inc f
+  jlt @start_calc_priority, g, 4
+  :end_calc_priority
 
-          mov h, 44
-          int 8 
+  mov a, d
+  @direction
 
-    :pass_up
-  :pass_calc_priority
-  inc g
-  inc f
-jlt @start_calc_priority, g, 4
-:end_calc_priority
+  mov d, a
+;;;;;;;BRANCH登録;;;;;;;
+  ;; 1つ前を2つ前に
+  mov @BRANCH_2_X, @BRANCH_1_X
+  mov @BRANCH_2_Y, @BRANCH_1_Y
+  mov @BRANCH_2_D, @BRANCH_1_D
 
-mov a, d
-@direction
+  @my_id
+  @ghost_axis
+
+  mov @BRANCH_1_X, a
+  mov @BRANCH_1_Y, b
+  mov @BRANCH_1_D, d
+
+  ; mov a, @BRANCH_2_X
+  ; mov b, @BRANCH_2_Y
+  ; mov c, @BRANCH_2_D
+  ; mov d, 0
+  ; mov e, @BRANCH_1_X
+  ; mov f, @BRANCH_1_Y
+  ; mov g, @BRANCH_1_D
+  ; mov h, @BRANCH
+  ; int 8
+
 
 jeq @fin, 0, 0 ;終了
 :fin
