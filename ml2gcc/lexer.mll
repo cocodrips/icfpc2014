@@ -12,9 +12,8 @@ rule token = parse
   | "(*"        { comments 0 lexbuf }
   | [' ' '\t']* { token lexbuf }
   | '\n'        { token lexbuf }
-  | ";;"        { EOC }
   | digit+ as n { INT (int_of_string n) }
-  | "let"        { LET }
+  | "let"       { LET }
   | "in"        { IN }
   | "if"        { IF }
   | "then"      { THEN }
@@ -24,17 +23,22 @@ rule token = parse
   | "not"       { NOT }
   | "car"       { CAR }
   | "cdr"       { CDR }
+  | "atom"      { ATOM }
   | "fun"       { FUN }
   | "rec"       { REC }
   | "and"       { AND }
   | "match"     { MATCH }
   | "with"      { WITH }
   | ","         { COMMA }
+  | ";"         { SEMI }
   | "|"         { OR }
   | "->"        { ARROW }
   | ">="        { GTE }
   | '>'         { GT }
   | '='         { EQ }
+  | "<="        { LTE }
+  | '<'         { LT }
+  | "!="        { NEQ }
   | '+'         { PLUS }
   | '-'         { MINUS }
   | '*'         { TIMES }

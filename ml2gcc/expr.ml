@@ -13,6 +13,7 @@ and expr =
   | EGte of expr * expr
   | ECar of expr
   | ECdr of expr
+  | EAtom of expr
   | EIf of expr * expr * expr
   | ELetIn of ((name * expr) list) * expr
   | ERecIn of ((name * expr) list) * expr
