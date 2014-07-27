@@ -109,30 +109,44 @@
 
 ;;;;;;; 敵の座標を知る ;;;;;;;;
   @lam_pos
-  mov @LAM_POS_X,a
-  mov @LAM_POS_Y,b
+  mov @LAM_POS_X, a
+  mov @LAM_POS_Y, b
 
-;;;; 敵の位置 1:True ;;;;
+;;;;;; 敵の位置 1:True ;;;;;;;
   ;; 右に敵がいるか;;
+
+    ; if LAM_POS_X <= posX
     jgt @gt_lambda_x, @LAM_POS_X, @POS_X
-      mov @IS_RIGHT, 0
-      jeq 0, 0, @end_gt_lambda_x
+      ; if LAM_POS_X < posX
+      jeq @eq_lambda_x, @LAM_POS_X, @POS_X
+        mov @IS_RIGHT, 0
+        jeq @end_gt_lambda_x, 0, 0
+      ; elif LAM_POS_X == posX
+      :eq_lambda_x 
+        mov @IS_RIGHT, 1
+        jeq @end_gt_lambda_x, 0, 0
+    ; elif LAM_POS_X > POS_X
     :gt_lambda_x
-      mov @IS_RIGHT, 1
+      mov @IS_RIGHT, 2
     :end_gt_lambda_x
 
   ;; 下に敵がいるか;;
     jgt @gt_lambda_y, @LAM_POS_Y, @POS_Y
-      mov @IS_DOWN, 0
-      jeq 0, 0, @end_gt_lambda_y
+      jeq @eq_lambda_y, @LAM_POS_Y, @POS_Y
+        mov @IS_DOWN, 0
+        jeq @end_gt_lambda_y, 0, 0
+      :eq_lambda_y
+        mov @IS_DOWN, 1
+        jeq @end_gt_lambda_y, 0, 0
     :gt_lambda_y
-      mov @IS_DOWN, 1
+      mov @IS_DOWN, 2
     :end_gt_lambda_y
 
   ;; debug
-  mov a, 1
+  mov a, 111
   mov b, @IS_RIGHT
   mov c, @IS_DOWN
+  mov d, 0
   int 8
 
 
@@ -156,14 +170,17 @@ jgt @end_calc_priority, g, 3
 
     ;; if maximum < floor_value:
     jgt @pass_up, c, a   
-      ;; if maxi != floor value
+
+      ;; if maxi < floor value
       jeq @eq_priority, c, a
         mov c, a
         mov d, g
         jeq @pass_up, 0, 0
 
-      ;; if maxi == floor value
+      ;; elif maxi == floor value
       :eq_priority
+
+
 
 
     :pass_up
