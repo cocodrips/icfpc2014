@@ -56,10 +56,6 @@
   :esc_counter_reset
     mov @ESCAPE_COUNTER, 0
   :changed_vitality
-  mov a, 88
-  mov b, @ESCAPE_COUNTER
-  mov c, @VITALITY
-  int 8
 
 
 ;;;;;自分の座標を知る;;;;
