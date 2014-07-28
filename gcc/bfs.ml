@@ -165,11 +165,13 @@ let main world_0 ghost_roms =
 
   let penalty dist world x y =
     let ghosts = (car (cdr (cdr world))) in
-    (if dist = (-2) then kPenaltyWall else if dist = (-1) then kPenaltyPoor else dist)
+    (if dist = (-2) then kPenaltyWall
+     else if dist = (-1) then kPenaltyPoor
+     else dist * kPenaltyStep)
     + (ghost_penalty ghosts x y)
   in
 
-  let decide_action_fruit world =
+  let decide_action_1 world target_fun =
     let lx = (car (car (cdr (car (cdr world))))) and
         ly = (cdr (car (cdr (car (cdr world))))) and
         map = (car world) in
@@ -178,28 +180,7 @@ let main world_0 ghost_roms =
         sy = (cdr (cdr shrinked)) and
         smap = (car shrinked) in
     let basemap =
-      (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kFruitPos))) in
-    let distmap = (build_distmap basemap) in
-    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1))
-                              world lx (ly - 1));  (* 0: ↑ *)
-                     (penalty (get distmap (lx - sx + 1) (ly - sy))
-                              world (lx + 1) ly);  (* 1: → *)
-                     (penalty (get distmap (lx - sx) (ly - sy + 1))
-                              world lx (ly + 1));  (* 2: ↓ *)
-                     (penalty (get distmap (lx - sx - 1) (ly - sy))
-                              world (lx - 1) ly)]  (* 3: ← *)
-  in
-
-  let decide_action_pills world =
-    let lx = (car (car (cdr (car (cdr world))))) and
-        ly = (cdr (car (cdr (car (cdr world))))) and
-        map = (car world) in
-    let shrinked = (shrink_map map lx ly) in
-    let sx = (car (cdr shrinked)) and
-        sy = (cdr (cdr shrinked)) and
-        smap = (car shrinked) in
-    let basemap =
-      (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kPill || c = kPowerPill))) in
+      (build_basemap smap (lx - sx) (ly - sy) target_fun) in
     let distmap = (build_distmap basemap) in
     find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1))
                               world lx (ly - 1));  (* 0: ↑ *)
@@ -213,10 +194,10 @@ let main world_0 ghost_roms =
 
   let decide_action world =
     let fruit = (cdr (cdr (cdr world))) in
-    if fruit then
-      (decide_action_fruit world)
+    if (fruit > 127) then
+      (decide_action_1 world (fun c -> (c = kFruitPos)))
     else
-      (decide_action_pills world)
+      (decide_action_1 world (fun c -> (c = kPill || c = kPowerPill)))
   in
 
   (*----------------------------------------------------------------------
