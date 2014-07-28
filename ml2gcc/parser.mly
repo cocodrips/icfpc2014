@@ -50,17 +50,23 @@ match_pattern:
 ;
 
 plist:
-  | pattern COMMA plist    { PCons($1, $3) }
-  | pattern                { PCons($1, PConst 0) }
+  | pattern SEMI plist     { p (PCons($1, $3)) }
+  | pattern                { p (PCons($1, p PUnit)) }
+;
+
+ptuple:
+  | pattern COMMA ptuple     { p (PCons($1, $3)) }
+  | pattern COMMA pattern    { p (PCons($1, $3)) }
 ;
 
 pattern:
-  | INT                    { PConst $1 }
-  | LLIST RLIST            { PConst 0 }
+  | INT                    { p (PConst $1) }
+  | LLIST RLIST            { p (PUnit) }
   | LLIST plist RLIST      { $2 }
-  | ID                     { PVar $1 }
-  | UNDER                  { PAny }
-  | pattern CONS pattern   { PCons ($1, $3) }
+  | ID                     { p (PVar $1) }
+  | UNDER                  { p (PAny) }
+  | pattern CONS pattern   { p (PCons ($1, $3)) }
+  | LPAR ptuple RPAR       { $2 }
   | LPAR pattern RPAR      { $2 }
 ;
 

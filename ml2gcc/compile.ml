@@ -1,6 +1,7 @@
 open Expr
 open Gcc
 open List
+open Pattern_match
 
 exception Compile_error of string
 
@@ -76,6 +77,9 @@ let rec compile2 (pos, exp) env tail =
 	   @ [GLabel t_label] @ (compile2 t env tail) @ [join]
 	   @ [GLabel f_label] @ (compile2 f env tail) @ [join];
 	   (cp a) @ [sel])
+	| EMatch (target, matches) ->
+	  compile2 (match_to_expr target matches) env tail
+	| EStop -> [GStop]
 
 let compile exp toplevel =
   let _ = (closures := []) in
