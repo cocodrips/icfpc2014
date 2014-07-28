@@ -12,7 +12,7 @@ let main world_0 ghost_roms =
       kLambdaHome = 5 and
       kGhostHome  = 6 and
 
-      kMaxDistance = 4 and
+      kMaxDistance = 16 and
 
       kPenaltyFore = (-5) and
       kPenaltyBack = 5 and
@@ -194,7 +194,7 @@ let main world_0 ghost_roms =
                      (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly 3 1)]  (* 3: ← *)
   in
 
-  let decide_action_g world target_fun =
+  let decide_action_g world =
     let lx = (car (car (cdr (car (cdr world))))) and
         ly = (cdr (car (cdr (car (cdr world))))) and
         map = (car world) in
@@ -207,17 +207,17 @@ let main world_0 ghost_roms =
       if (atom xys) then
         0
       else
-        let x = ((car (car xys)) - sx) and
-            y = ((cdr (car xys)) - sy) in
+        let x = (car (car xys)) and
+            y = (cdr (car xys)) in
         if ((x = xx) && (y = yy)) then 1 else (found (cdr xys) xx yy)
     in
     let basemap = (build_basemap smap (lx - sx) (ly - sy)
-                                 (fun c x y -> (found ghost_xys x y))) in
+                                 (fun c x y -> (found ghost_xys (x + sx) (y + sy)))) in
     let distmap = (build_distmap basemap) in
-    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1)) world lx (ly - 1));  (* 0: ↑ *)
-                     (penalty (get distmap (lx - sx + 1) (ly - sy)) world (lx + 1) ly);  (* 1: → *)
-                     (penalty (get distmap (lx - sx) (ly - sy + 1)) world lx (ly + 1));  (* 2: ↓ *)
-                     (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly)]  (* 3: ← *)
+    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1)) world lx (ly - 1) 0 2);  (* 0: ↑ *)
+                     (penalty (get distmap (lx - sx + 1) (ly - sy)) world (lx + 1) ly 1 3);  (* 1: → *)
+                     (penalty (get distmap (lx - sx) (ly - sy + 1)) world lx (ly + 1) 2 0);  (* 2: ↓ *)
+                     (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly 3 1)]  (* 3: ← *)
   in
 
   let decide_action world =
