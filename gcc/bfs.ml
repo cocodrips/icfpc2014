@@ -14,6 +14,9 @@ let main world_0 ghost_roms =
 
       kMaxDistance = 16 and
 
+      kPenaltyFore = (-5) and
+      kPenaltyBack = 5 and
+
       kPenaltyGhost = 20000000 and
       kPenaltyRisky = 10000000 and
       kPenaltyWall = 2000000 and
@@ -163,11 +166,13 @@ let main world_0 ghost_roms =
       (calc_penalty (car ghosts)) + (ghost_penalty (cdr ghosts) x y)
   in
 
-  let penalty dist world x y =
-    let ghosts = (car (cdr (cdr world))) in
+  let penalty dist world x y fwd bwd =
+    let dir = (car (cdr (cdr (car (cdr world))))) and
+        ghosts = (car (cdr (cdr world))) in
     (if dist = (-2) then kPenaltyWall
      else if dist = (-1) then kPenaltyPoor
      else dist * kPenaltyStep)
+    + (if dir = fwd then kPenaltyFore else if dir = bwd then kPenaltyBack else 0)
     + (ghost_penalty ghosts x y)
   in
 
@@ -181,10 +186,10 @@ let main world_0 ghost_roms =
         smap = (car shrinked) in
     let basemap = (build_basemap smap (lx - sx) (ly - sy) target_fun) in
     let distmap = (build_distmap basemap) in
-    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1)) world lx (ly - 1));  (* 0: ↑ *)
-                     (penalty (get distmap (lx - sx + 1) (ly - sy)) world (lx + 1) ly);  (* 1: → *)
-                     (penalty (get distmap (lx - sx) (ly - sy + 1)) world lx (ly + 1));  (* 2: ↓ *)
-                     (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly)]  (* 3: ← *)
+    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1)) world lx (ly - 1) 0 2);  (* 0: ↑ *)
+                     (penalty (get distmap (lx - sx + 1) (ly - sy)) world (lx + 1) ly 1 3);  (* 1: → *)
+                     (penalty (get distmap (lx - sx) (ly - sy + 1)) world lx (ly + 1) 2 0);  (* 2: ↓ *)
+                     (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly 3 1)]  (* 3: ← *)
   in
 
   let decide_action_g world target_fun =
