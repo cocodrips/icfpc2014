@@ -82,39 +82,28 @@
   ; int 8
 
   ;; ポインタ++ ;;
-  inc @POINTER
+  ; inc @POINTER
 ;;;;;; ショートカット ;;;;;;;
-  ; mov a, 0
-  ; mov b, @STACK_SIZE
-  ; mov c, @POINTER
-  ; inc c
+  mov a, 0
+  mov b, @STACK_SIZE
+  :start_shortcut ;;TODO!!!!!!!!!!!!!!
+    jgt @repeat_shortcut, [a], @LAM_POS_X
+      jlt @repeat_shortcut, [a], @LAM_POS_X
+        jgt @repeat_shortcut, [b], @LAM_POS_Y
+          jlt @repeat_shortcut, [b], @LAM_POS_Y
+            ;;ショートカット可能
+            mov @POINTER, a
+            jeq @end_shortcut, 0, 0
 
-  ; :start_shortcut ;;TODO!!!!!!!!!!!!!!
-  ;   jgt @repeat_shortcut, [a], @LAM_POS_X
-  ;     jlt @repeat_shortcut, [a], @LAM_POS_X
-  ;       jgt @repeat_shortcut, [b], @LAM_POS_Y
-  ;         jlt @repeat_shortcut, [b], @LAM_POS_Y
-  ;           mov @POINTER, a
-  ;           jeq @end_shortcut, 0, 0
+    :repeat_shortcut
+    inc a
+    inc b
+
+    jlt @start_shortcut, a, @STACK_SIZE
+  :end_shortcut
 
 
-
-  ;   :repeat_shortcut
-  ;   inc a
-  ;   inc b
-
-  ;   jlt @start_shortcut, a, c
-  ; :end_shortcut
-
-  ; mov a, [0]
-  ; mov b, [4]
-  ; mov c, [1]
-  ; mov d, [5]
-  ; mov e, [2]
-  ; mov f, [6]
-  ; mov g, 100
-  ; mov h, @POINTER
-  ; int 8
+inc @POINTER
 
 ;;; ストーカーモードならジャンプ ;;
 mov h, 0
@@ -516,6 +505,11 @@ jeq @fin, 0, 0 ;終了
 
 
 :fin
+
+:inf
+  mov a, 1
+jeq @inf, 0, 0
+
 
 ; int 8
 hlt
