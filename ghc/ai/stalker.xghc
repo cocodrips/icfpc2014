@@ -6,7 +6,7 @@
 #define ghost_axis int 5
 #define ghost_status int 6
 #define floor int 7
-#define STACK_SIZE 100
+#define STACK_SIZE 30
 #define STALKER_MODE [254]
 #define POINTER [255]
 
@@ -51,13 +51,214 @@
   @ghost_status
   mov @VITALITY,a
   mov @DIRECTION,b
-  inc [b] ; 今まで行った方向++;
+  ; inc [b] ; 今まで行った方向++;
 
 ;;;;;自分の座標を知る;;;;
   @my_id
   @ghost_axis
   mov @POS_X, a
   mov @POS_Y, b
+
+;;;;;;; 敵の座標を知る ;;;;;;;;
+  @lam_pos
+  mov @LAM_POS_X, a
+  mov @LAM_POS_Y, b
+
+;;;;;;; 敵の位置を登録 ;;;;;;;;
+  mov f, @POINTER
+  mov [f], @LAM_POS_X
+
+  mov f, @POINTER
+  add f, @STACK_SIZE
+  mov [f], @LAM_POS_Y
+  ; debug
+  ; mov a, @POINTER
+  ; mov a, [a]
+  ; mov b, @STACK_SIZE
+  ; add b, @POINTER
+  ; mov b, [b]
+
+  ; mov h, @POINTER
+  ; int 8
+
+  ;; ポインタ++ ;;
+  inc @POINTER
+;;;;;; ショートカット ;;;;;;;
+  ; mov a, 0
+  ; mov b, @STACK_SIZE
+  ; mov c, @POINTER
+  ; inc c
+
+  ; :start_shortcut ;;TODO!!!!!!!!!!!!!!
+  ;   jgt @repeat_shortcut, [a], @LAM_POS_X
+  ;     jlt @repeat_shortcut, [a], @LAM_POS_X
+  ;       jgt @repeat_shortcut, [b], @LAM_POS_Y
+  ;         jlt @repeat_shortcut, [b], @LAM_POS_Y
+  ;           mov @POINTER, a
+  ;           jeq @end_shortcut, 0, 0
+
+
+
+  ;   :repeat_shortcut
+  ;   inc a
+  ;   inc b
+
+  ;   jlt @start_shortcut, a, c
+  ; :end_shortcut
+
+  ; mov a, [0]
+  ; mov b, [4]
+  ; mov c, [1]
+  ; mov d, [5]
+  ; mov e, [2]
+  ; mov f, [6]
+  ; mov g, 100
+  ; mov h, @POINTER
+  ; int 8
+
+;;; ストーカーモードならジャンプ ;;
+mov h, 0
+jeq @jump_stalker_mode, @STALKER_MODE, 1
+
+;; ストーカーモード判定 ;;
+  mov a, 0
+  mov b, @STACK_SIZE
+
+  :start_check
+    jgt @repeat_check, @POS_X, [a]
+      jlt @repeat_check, @POS_X, [a]
+        jgt @repeat_check, @POS_Y, [b]
+          jlt @repeat_check, @POS_Y, [b]
+            jeq @start_stalker_mode, 0, 0 
+            ;; pos_x
+    :repeat_check
+    inc a
+    inc b
+    jlt @start_check, a, @POINTER
+
+  jeq @end_stalker_check, 0, 0
+  ;; aにpointerが入ってる
+
+  :start_stalker_mode
+    ;; ef に次の目的にを代入 ;;
+    mov h, a
+    inc h
+
+    :jump_stalker_mode
+
+    mov e, [h]
+    mov f, h
+    add f, @STACK_SIZE
+    mov f, [f]
+
+    ;; 次を抜いてメモリをShift ;; 
+    inc h
+    mov @STALKER_MODE, 1
+    mov a, 0
+    mov b, h ;; 好きなサイズにしてね☆
+    mov c, @STACK_SIZE
+    mov d, c
+    add d, h
+  
+    :start_stalker_shift
+      mov [a], [b]
+      mov [c], [d]
+      inc a
+      inc b
+      inc c
+      inc d
+    jlt @start_stalker_shift, b, @POINTER
+    sub @POINTER, h
+
+    ;; debug
+    ; mov a, 222 
+    ; mov b, @POINTER
+    ; mov c, [0]
+    ; mov d, [30]
+    ; int 8
+
+    ;;;; 敵の方へ向かう ;;;;;
+    mov c, @STACK_SIZE
+    mov g, 0
+
+    :start_search_next
+    jgt @end_search_next, g, 3
+    ;;初期化
+      mov a,@POS_X
+      mov b,@POS_Y
+
+    ;;SWICH 方向
+      jeq @ss0, g, 0 
+      jeq @ss1, g, 1
+      jeq @ss2, g, 2
+      jeq @ss3, g, 3
+
+      :ss0
+        dec b
+        jeq @end_search_swich, 0, 0
+      :ss1
+        inc a
+        jeq @end_search_swich, 0, 0
+      :ss2
+        inc b
+        jeq @end_search_swich, 0, 0
+      :ss3
+        dec a
+        jeq @end_search_swich, 0, 0
+      :end_search_swich
+      ;;; 座標がnextかチェック ;;;
+
+      ; mov h, 200
+      ; int 8
+
+      jlt @inc_index, a, e
+        jgt @inc_index, a, e
+          jlt @inc_index, b, f
+            jgt @inc_index, b, f
+
+              mov a, g
+              @direction
+              mov a, e
+              mov b, f
+              mov c, 0
+              mov d, [0]
+              mov e, [30]
+              int 8
+              jeq @fin, 0, 0
+
+      :inc_index
+      inc g
+    jlt @start_search_next, g, 4
+    :end_search_next
+    ;;; ここまでくるなら、ストーカー失敗 ;;;
+
+  :end_stalker_check
+
+
+;; これ以降はcloseモード ;;
+
+mov @STALKER_MODE, 0
+;; ストーカーモードじゃないなら、Shift ;;
+  ; if @pointer > @STACK_SIZE 
+  jlt @registed, @POINTER, @STACK_SIZE
+    mov a, 0
+    mov b, 1 ;; 好きなサイズにしてね☆
+    mov c, @STACK_SIZE
+    mov d, c
+    inc d
+    :start_shift
+      mov [a], [b]
+      mov [c], [d]
+      inc a
+      inc b
+      inc c
+      inc d
+
+    jlt @start_shift, b, @STACK_SIZE
+    dec @POINTER
+
+  :registed
+
 
 ;;;;;Count Branch;;;;;;
   mov @BRANCH, 0
@@ -142,79 +343,6 @@
 
 ;;BRANCHじゃなければ終了;;
   jlt @fin, @BRANCH, 3
-
-;;;;;;; 敵の座標を知る ;;;;;;;;
-  @lam_pos
-  mov @LAM_POS_X, a
-  mov @LAM_POS_Y, b
-
-;;;;;;; 敵の位置を登録 ;;;;;;;;
-  mov f, @POINTER
-  mov [f], @LAM_POS_X
-
-  mov f, @POINTER
-  add f, @STACK_SIZE
-  mov [f], @LAM_POS_Y
-  ; debug
-  ; mov a, @POINTER
-  ; mov a, [a]
-  ; mov b, @STACK_SIZE
-  ; add b, @POINTER
-  ; mov b, [b]
-
-  ; mov h, @POINTER
-  ; int 8
-
-  ;; ポインタ++ ;;
-  inc @POINTER
-
-
-  ;; if @pointer > @STACK_SIZE 
-  ; jlt @registed, @POINTER, @STACK_SIZE
-  ;   mov a, 0
-  ;   mov b, 1 ;; 好きなサイズにしてね☆
-  ;   mov c, @STACK_SIZE
-  ;   mov d, c
-  ;   inc d
-  ;   :start_shift
-  ;     mov [b], [a]
-  ;     mov [d], [c]
-  ;     inc a
-  ;     inc b
-  ;     inc c
-  ;     inc d
-
-  ;   jlt @start_shift, b, @STACK_SIZE
-
-  ; :registed
-
-;;;;;;; ショートカット ;;;;;;;
-  mov a, 0
-  mov b, @STACK_SIZE
-  mov f, @STACK_SIZE ;;TODO ここ減らせる
-  sub f, 1
-
-  :start_shortcut
-    jgt @repeat_shortcut, [a], @LAM_POS_X
-      jlt @repeat_shortcut, [a], @LAM_POS_X
-        jgt @repeat_shortcut, [b], @LAM_POS_Y
-          jlt @repeat_shortcut, [b], @LAM_POS_Y
-            mov @POINTER, a
-            jeq @end_shortcut, 0, 0
-
-
-
-    :repeat_shortcut
-    jlt @start_shortcut, a, @POINTER
-  :end_shortcut
-
-
-
-
-   
-
-
-
 
 ;;;;;; 敵の位置 1:True ;;;;;;;
   ;; 右に敵がいるか;;
@@ -385,14 +513,11 @@
 jeq @fin, 0, 0 ;終了
 
 
-;; STALKER_MODE
-  :stakler_mode
-
-
 
 
 :fin
 
+; int 8
 hlt
 
 
