@@ -12,7 +12,7 @@ let main world_0 ghost_roms =
       kLambdaHome = 5 and
       kGhostHome  = 6 and
 
-      kMaxDistance = 32 and
+      kMaxDistance = 16 and
 
       kMaxInt = 2147483647
   in
@@ -110,17 +110,47 @@ let main world_0 ghost_roms =
     (find values 0 99 kMaxInt)
   in
 
+  let shrink_map map lx ly =
+    let sx = if (lx < kMaxDistance) then 0 else (lx - kMaxDistance) and
+        sy = if (ly < kMaxDistance) then 0 else (ly - kMaxDistance) in
+    let rec inner row x =
+      if (atom row) then
+        []
+      else if x > (sx + 2 * kMaxDistance) then
+        []
+      else if x >= sx then
+        ((car row) :: (inner (cdr row) (x + 1)))
+      else
+        (inner (cdr row) (x + 1))
+    in
+    let rec outer map y =
+      if (atom map) then
+        []
+      else if y > (sy + 2 * kMaxDistance) then
+        []
+      else if y >= sy then
+        ((inner (car map) 0) :: (outer (cdr map) (y + 1)))
+      else
+        (outer (cdr map) (y + 1))
+    in
+    ((outer map 0), (sx, sy))
+  in
+
   let decide_action world =
     let lx = (car (car (cdr (car (cdr world))))) and
         ly = (cdr (car (cdr (car (cdr world))))) and
         map = (car world) in
+    let shrinked = (shrink_map map lx ly) in
+    let sx = (car (cdr shrinked)) and
+        sy = (cdr (cdr shrinked)) and
+        smap = (car shrinked) in
     let basemap_pills =
-      (build_basemap map lx ly (fun c -> (c = kPill || c = kPowerPill))) in
+      (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kPill || c = kPowerPill))) in
     let distmap_pills = (build_distmap basemap_pills) in
-    find_best_index [(get distmap_pills lx (ly - 1));     (* 0: ↑ *)
-                     (get distmap_pills (lx + 1) ly);     (* 1: → *)
-                     (get distmap_pills lx (ly + 1));     (* 2: ↓ *)
-                     (get distmap_pills (lx - 1) ly)]     (* 3: ← *)
+    find_best_index [(get distmap_pills (lx - sx) (ly - sy - 1));     (* 0: ↑ *)
+                     (get distmap_pills (lx - sx + 1) (ly - sy));     (* 1: → *)
+                     (get distmap_pills (lx - sx) (ly - sy + 1));     (* 2: ↓ *)
+                     (get distmap_pills (lx - sx - 1) (ly - sy))]     (* 3: ← *)
   in
 
   (*----------------------------------------------------------------------
