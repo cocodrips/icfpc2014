@@ -42,6 +42,8 @@
 ;; 130-133
 
 #define ESCAPE_COUNTER [135]
+#define ESCAPE_TIME 8
+
 
 
 ;;;;;;;過去の方向;;;;;;;
@@ -52,7 +54,7 @@
 
   jgt @esc_counter_reset, @VITALITY, 0
     inc @ESCAPE_COUNTER
-    jlt @changed_vitality, @ESCAPE_COUNTER, 3
+    jlt @changed_vitality, @ESCAPE_COUNTER, @ESCAPE_TIME
       mov @VITALITY, 0
   :esc_counter_reset
     mov @ESCAPE_COUNTER, 0
@@ -118,7 +120,7 @@
         @floor ;; a = a, bの床情報を
         mov [f], a ;;床情報を入れる
         jlt @regist_floor, a, 5 ; 5以上なら、空判定
-          mov a, 1
+          mov [f], 1
 
       :regist_floor
 
