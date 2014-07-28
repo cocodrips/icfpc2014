@@ -12,7 +12,7 @@ let main world_0 ghost_roms =
       kLambdaHome = 5 and
       kGhostHome  = 6 and
 
-      kMaxDistance = 16 and
+      kMaxDistance = 4 and
 
       kPenaltyFore = (-5) and
       kPenaltyBack = 5 and
@@ -73,6 +73,8 @@ let main world_0 ghost_roms =
       let new_value =
         if (car o) != (-1) then
           (car o)
+        else if (atom r) then
+          (-1)
         else
           let has_adj = ((car u) >= 0) || ((car r) >= 0) || ((car d) >= 0) || ((car l) >= 0) in
           if has_adj then counter else (-1)
@@ -124,7 +126,7 @@ let main world_0 ghost_roms =
     let rec inner row x =
       if (atom row) then
         []
-      else if x > (lx + kMaxDistance + 1) then
+      else if x > (lx + kMaxDistance) then
         []
       else if x >= sx then
         ((car row) :: (inner (cdr row) (x + 1)))
@@ -134,7 +136,7 @@ let main world_0 ghost_roms =
     let rec outer map y =
       if (atom map) then
         []
-      else if y > (ly + kMaxDistance + 1) then
+      else if y > (ly + kMaxDistance) then
         []
       else if y >= sy then
         ((inner (car map) 0) :: (outer (cdr map) (y + 1)))
