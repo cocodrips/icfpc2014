@@ -121,7 +121,7 @@ let main world_0 ghost_roms =
     let rec inner row x =
       if (atom row) then
         []
-      else if x > (sx + 2 * kMaxDistance) then
+      else if x > (lx + kMaxDistance + 1) then
         []
       else if x >= sx then
         ((car row) :: (inner (cdr row) (x + 1)))
@@ -131,7 +131,7 @@ let main world_0 ghost_roms =
     let rec outer map y =
       if (atom map) then
         []
-      else if y > (sy + 2 * kMaxDistance) then
+      else if y > (ly + kMaxDistance + 1) then
         []
       else if y >= sy then
         ((inner (car map) 0) :: (outer (cdr map) (y + 1)))
