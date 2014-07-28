@@ -187,10 +187,39 @@ let main world_0 ghost_roms =
                      (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly)]  (* 3: ← *)
   in
 
+  let decide_action_g world target_fun =
+    let lx = (car (car (cdr (car (cdr world))))) and
+        ly = (cdr (car (cdr (car (cdr world))))) and
+        map = (car world) in
+    let shrinked = (shrink_map map lx ly) in
+    let sx = (car (cdr shrinked)) and
+        sy = (cdr (cdr shrinked)) and
+        smap = (car shrinked) in
+    let ghost_xys = (mapfun (fun g -> (car (cdr g))) (car (cdr (cdr world)))) in
+    let rec found xys xx yy =
+      if (atom xys) then
+        0
+      else
+        let x = ((car (car xys)) - sx) and
+            y = ((cdr (car xys)) - sy) in
+        if ((x = xx) && (y = yy)) then 1 else (found (cdr xys) xx yy)
+    in
+    let basemap = (build_basemap smap (lx - sx) (ly - sy)
+                                 (fun c x y -> (found ghost_xys x y))) in
+    let distmap = (build_distmap basemap) in
+    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1)) world lx (ly - 1));  (* 0: ↑ *)
+                     (penalty (get distmap (lx - sx + 1) (ly - sy)) world (lx + 1) ly);  (* 1: → *)
+                     (penalty (get distmap (lx - sx) (ly - sy + 1)) world lx (ly + 1));  (* 2: ↓ *)
+                     (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly)]  (* 3: ← *)
+  in
+
   let decide_action world =
-    let fruit = (cdr (cdr (cdr world))) in
+    let fruit = (cdr (cdr (cdr world))) and
+        vital = (car (car (cdr world))) in
     if (fruit > 127) then
       (decide_action_1 world (fun c x y -> (c = kFruitPos)))
+    else if (vital > 254) then
+      (decide_action_g world)
     else
       (decide_action_1 world (fun c x y -> (c = kPill || c = kPowerPill)))
   in
