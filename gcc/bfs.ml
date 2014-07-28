@@ -41,14 +41,14 @@ let main world_0 ghost_roms =
     Evaluations
   ----------------------------------------------------------------------*)
 
-  let build_basemap map lx ly pred_cell =
+  let build_basemap map lx ly target_fun =
     let eval_cell cell x y =
       if ((x = lx) && (y = ly)) then
         (-2)
       else if (cell = kWall) then
         (-2)
       else
-        if (pred_cell cell) then 0 else (-1)
+        if (target_fun cell x y) then 0 else (-1)
     in
     let rec inner row x y =
       if (atom row) then
@@ -179,25 +179,20 @@ let main world_0 ghost_roms =
     let sx = (car (cdr shrinked)) and
         sy = (cdr (cdr shrinked)) and
         smap = (car shrinked) in
-    let basemap =
-      (build_basemap smap (lx - sx) (ly - sy) target_fun) in
+    let basemap = (build_basemap smap (lx - sx) (ly - sy) target_fun) in
     let distmap = (build_distmap basemap) in
-    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1))
-                              world lx (ly - 1));  (* 0: ↑ *)
-                     (penalty (get distmap (lx - sx + 1) (ly - sy))
-                              world (lx + 1) ly);  (* 1: → *)
-                     (penalty (get distmap (lx - sx) (ly - sy + 1))
-                              world lx (ly + 1));  (* 2: ↓ *)
-                     (penalty (get distmap (lx - sx - 1) (ly - sy))
-                              world (lx - 1) ly)]  (* 3: ← *)
+    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1)) world lx (ly - 1));  (* 0: ↑ *)
+                     (penalty (get distmap (lx - sx + 1) (ly - sy)) world (lx + 1) ly);  (* 1: → *)
+                     (penalty (get distmap (lx - sx) (ly - sy + 1)) world lx (ly + 1));  (* 2: ↓ *)
+                     (penalty (get distmap (lx - sx - 1) (ly - sy)) world (lx - 1) ly)]  (* 3: ← *)
   in
 
   let decide_action world =
     let fruit = (cdr (cdr (cdr world))) in
     if (fruit > 127) then
-      (decide_action_1 world (fun c -> (c = kFruitPos)))
+      (decide_action_1 world (fun c x y -> (c = kFruitPos)))
     else
-      (decide_action_1 world (fun c -> (c = kPill || c = kPowerPill)))
+      (decide_action_1 world (fun c x y -> (c = kPill || c = kPowerPill)))
   in
 
   (*----------------------------------------------------------------------
