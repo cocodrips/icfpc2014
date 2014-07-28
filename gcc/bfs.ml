@@ -169,7 +169,7 @@ let main world_0 ghost_roms =
     + (ghost_penalty ghosts x y)
   in
 
-  let decide_action world =
+  let decide_action_fruit world =
     let lx = (car (car (cdr (car (cdr world))))) and
         ly = (cdr (car (cdr (car (cdr world))))) and
         map = (car world) in
@@ -177,17 +177,46 @@ let main world_0 ghost_roms =
     let sx = (car (cdr shrinked)) and
         sy = (cdr (cdr shrinked)) and
         smap = (car shrinked) in
-    let basemap_pills =
-      (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kPill || c = kPowerPill))) in
-    let distmap_pills = (build_distmap basemap_pills) in
-    find_best_index [(penalty (get distmap_pills (lx - sx) (ly - sy - 1))
+    let basemap =
+      (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kFruitPos))) in
+    let distmap = (build_distmap basemap) in
+    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1))
                               world lx (ly - 1));  (* 0: ↑ *)
-                     (penalty (get distmap_pills (lx - sx + 1) (ly - sy))
+                     (penalty (get distmap (lx - sx + 1) (ly - sy))
                               world (lx + 1) ly);  (* 1: → *)
-                     (penalty (get distmap_pills (lx - sx) (ly - sy + 1))
+                     (penalty (get distmap (lx - sx) (ly - sy + 1))
                               world lx (ly + 1));  (* 2: ↓ *)
-                     (penalty (get distmap_pills (lx - sx - 1) (ly - sy))
+                     (penalty (get distmap (lx - sx - 1) (ly - sy))
                               world (lx - 1) ly)]  (* 3: ← *)
+  in
+
+  let decide_action_pills world =
+    let lx = (car (car (cdr (car (cdr world))))) and
+        ly = (cdr (car (cdr (car (cdr world))))) and
+        map = (car world) in
+    let shrinked = (shrink_map map lx ly) in
+    let sx = (car (cdr shrinked)) and
+        sy = (cdr (cdr shrinked)) and
+        smap = (car shrinked) in
+    let basemap =
+      (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kPill || c = kPowerPill))) in
+    let distmap = (build_distmap basemap) in
+    find_best_index [(penalty (get distmap (lx - sx) (ly - sy - 1))
+                              world lx (ly - 1));  (* 0: ↑ *)
+                     (penalty (get distmap (lx - sx + 1) (ly - sy))
+                              world (lx + 1) ly);  (* 1: → *)
+                     (penalty (get distmap (lx - sx) (ly - sy + 1))
+                              world lx (ly + 1));  (* 2: ↓ *)
+                     (penalty (get distmap (lx - sx - 1) (ly - sy))
+                              world (lx - 1) ly)]  (* 3: ← *)
+  in
+
+  let decide_action world =
+    let fruit = (cdr (cdr (cdr world))) in
+    if fruit then
+      (decide_action_fruit world)
+    else
+      (decide_action_pills world)
   in
 
   (*----------------------------------------------------------------------
