@@ -218,7 +218,7 @@ let main world_0 ghost_roms =
         vital = (car (car (cdr world))) in
     if (fruit > 127) then
       (decide_action_1 world (fun c x y -> (c = kFruitPos)))
-    else if (vital > 254) then
+    else if (vital > 274) then
       (decide_action_g world)
     else
       (decide_action_1 world (fun c x y -> (c = kPill || c = kPowerPill)))
