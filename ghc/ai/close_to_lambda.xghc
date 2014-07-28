@@ -43,6 +43,7 @@
 
 #define ESCAPE_COUNTER [135]
 #define ESCAPE_TIME 8
+#define TMP [140]
 
 
 
@@ -253,7 +254,9 @@
     jeq @pass_calc_priority, a, g ; 戻らないなら
       mov a, [f]
       ;; if maximum <= floor_value:
-      jgt @pass_up, c, a   
+      jeq @pri, @VITALITY, 1
+        jgt @pass_up, c, a  
+      :pri
 
         ;;SWICH 方向の優先度
           mov b, 2
@@ -278,6 +281,7 @@
 
         ;; if maxi < floor value
         ;; TODO:下のブロックと最適化
+          jeq @eq_priority, @VITALITY, 1
           jeq @eq_priority, c, a
             mov c, a
             mov d, g
@@ -287,13 +291,16 @@
 
           ;; elif maxi == floor value
           :eq_priority
-          jeq @scare_update ,@VITALITY, 1 
+          jeq @scare_update, @VITALITY, 1 
             jlt @pass_up, b, e
               :updata_priority
               mov d, g
               mov e, b
               jeq @pass_up, 0, 0
           :scare_update
+            mov @TMP, 2
+            sub @TMP, b
+            mov b, @TMP
             jlt @updata_priority, b, e
 
       :pass_up
@@ -333,5 +340,11 @@
 
 jeq @fin, 0, 0 ;終了
 :fin
+
+
+:inf
+  mov a, 1
+jeq @inf, 0, 0
+
 
 hlt

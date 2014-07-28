@@ -320,4 +320,10 @@
 jeq @fin, 0, 0 ;終了
 :fin
 
+
+:inf
+  mov c, 1
+jeq @inf, 0, 0
+
+
 hlt

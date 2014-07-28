@@ -212,12 +212,12 @@ jeq @jump_stalker_mode, @STALKER_MODE, 1
 
               mov a, g
               @direction
-              mov a, e
-              mov b, f
-              mov c, 0
-              mov d, [0]
-              mov e, [30]
-              int 8
+              ; mov a, e
+              ; mov b, f
+              ; mov c, 0
+              ; mov d, [0]
+              ; mov e, [30]
+              ; int 8
               jeq @fin, 0, 0
 
       :inc_index
@@ -528,8 +528,6 @@ jeq @fin, 0, 0 ;終了
   mov a, 1
 jeq @inf, 0, 0
 
-
-; int 8
 hlt
 
 
