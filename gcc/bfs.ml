@@ -14,6 +14,12 @@ let main world_0 ghost_roms =
 
       kMaxDistance = 16 and
 
+      kPenaltyGhost = 20000000 and
+      kPenaltyRisky = 10000000 and
+      kPenaltyWall = 2000000 and
+      kPenaltyPoor = 1000000 and
+      kPenaltyStep = 100 and
+
       kMaxInt = 2147483647
   in
 
@@ -59,11 +65,10 @@ let main world_0 ghost_roms =
     (outer map 0)
   in
 
-  (* basemap --> 0: Target, -1: Empty, else: Wall *)
   let build_distmap basemap =
     let rec for_x o u r d l counter =
       let new_value =
-        if (car o) != -1 then
+        if (car o) != (-1) then
           (car o)
         else
           let has_adj = ((car u) >= 0) || ((car r) >= 0) || ((car d) >= 0) || ((car l) >= 0) in
@@ -80,7 +85,7 @@ let main world_0 ghost_roms =
                               (car prev)
                               (cdr (car curr))
                               (car (if (atom next) then curr else next))
-                              (-3 :: (car curr))
+                              (kPenaltyWall :: (car curr))
                               counter) in
       if (atom next) then
         [new_values]
@@ -102,7 +107,7 @@ let main world_0 ghost_roms =
     let rec find values k best_k min_value =
       if (atom values) then
         best_k
-      else if (((car values) >= min_value) || ((car values) < 0)) then
+      else if ((car values) >= min_value) then
         find (cdr values) (k + 1) best_k min_value
       else
         find (cdr values) (k + 1) k (car values)
@@ -136,6 +141,34 @@ let main world_0 ghost_roms =
     ((outer map 0), (sx, sy))
   in
 
+  let rec ghost_penalty ghosts x y =
+    let calc_penalty ghost =
+      let gx = (car (car (cdr ghost))) and
+          gy = (cdr (car (cdr ghost))) and
+          vitality = (car ghost) in
+      if (vitality != 0) then
+        0
+      else if (x = gx) && (y = gy) then
+        kPenaltyGhost
+      else if (x = gx) && ((y = gy - 1) || (y = gy + 1)) then
+        kPenaltyRisky
+      else if (y = gy) && ((x = gx - 1) || (x = gx + 1)) then
+        kPenaltyRisky
+      else
+        0
+    in
+    if (atom ghosts) then
+      0
+    else
+      (calc_penalty (car ghosts)) + (ghost_penalty (cdr ghosts) x y)
+  in
+
+  let penalty dist world x y =
+    let ghosts = (car (cdr (cdr world))) in
+    (if dist = (-2) then kPenaltyWall else if dist = (-1) then kPenaltyPoor else dist)
+    + (ghost_penalty ghosts x y)
+  in
+
   let decide_action world =
     let lx = (car (car (cdr (car (cdr world))))) and
         ly = (cdr (car (cdr (car (cdr world))))) and
@@ -147,10 +180,14 @@ let main world_0 ghost_roms =
     let basemap_pills =
       (build_basemap smap (lx - sx) (ly - sy) (fun c -> (c = kPill || c = kPowerPill))) in
     let distmap_pills = (build_distmap basemap_pills) in
-    find_best_index [(get distmap_pills (lx - sx) (ly - sy - 1));     (* 0: ↑ *)
-                     (get distmap_pills (lx - sx + 1) (ly - sy));     (* 1: → *)
-                     (get distmap_pills (lx - sx) (ly - sy + 1));     (* 2: ↓ *)
-                     (get distmap_pills (lx - sx - 1) (ly - sy))]     (* 3: ← *)
+    find_best_index [(penalty (get distmap_pills (lx - sx) (ly - sy - 1))
+                              world lx (ly - 1));  (* 0: ↑ *)
+                     (penalty (get distmap_pills (lx - sx + 1) (ly - sy))
+                              world (lx + 1) ly);  (* 1: → *)
+                     (penalty (get distmap_pills (lx - sx) (ly - sy + 1))
+                              world lx (ly + 1));  (* 2: ↓ *)
+                     (penalty (get distmap_pills (lx - sx - 1) (ly - sy))
+                              world (lx - 1) ly)]  (* 3: ← *)
   in
 
   (*----------------------------------------------------------------------
