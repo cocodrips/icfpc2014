@@ -41,17 +41,26 @@
 #define DIRECTION_ALLOWED [130]
 ;; 130-133
 
-#define RADIUS 5
+#define ESCAPE_COUNTER [135]
+#define ESCAPE_TIME 8
+#define TMP [140]
 
-;;;; TURN RESET ;;;;
-; TODO
+
 
 ;;;;;;;過去の方向;;;;;;;
   @my_id
   @ghost_status
-  mov @VITALITY,a
-  mov @DIRECTION,b
-  inc [b] ; 今まで行った方向++;
+  mov @VITALITY, a
+  mov @DIRECTION, b
+
+  jgt @esc_counter_reset, @VITALITY, 0
+    inc @ESCAPE_COUNTER
+    jlt @changed_vitality, @ESCAPE_COUNTER, @ESCAPE_TIME
+      mov @VITALITY, 0
+  :esc_counter_reset
+    mov @ESCAPE_COUNTER, 0
+  :changed_vitality
+
 
 ;;;;;自分の座標を知る;;;;
   @my_id
@@ -112,7 +121,7 @@
         @floor ;; a = a, bの床情報を
         mov [f], a ;;床情報を入れる
         jlt @regist_floor, a, 5 ; 5以上なら、空判定
-          mov a, 1
+          mov [f], 1
 
       :regist_floor
 
@@ -245,7 +254,9 @@
     jeq @pass_calc_priority, a, g ; 戻らないなら
       mov a, [f]
       ;; if maximum <= floor_value:
-      jgt @pass_up, c, a   
+      jeq @pri, @VITALITY, 1
+        jgt @pass_up, c, a  
+      :pri
 
         ;;SWICH 方向の優先度
           mov b, 2
@@ -270,6 +281,7 @@
 
         ;; if maxi < floor value
         ;; TODO:下のブロックと最適化
+          jeq @eq_priority, @VITALITY, 1
           jeq @eq_priority, c, a
             mov c, a
             mov d, g
@@ -279,9 +291,18 @@
 
           ;; elif maxi == floor value
           :eq_priority
+          jeq @scare_update, @VITALITY, 1 
             jlt @pass_up, b, e
+              :updata_priority
               mov d, g
               mov e, b
+              jeq @pass_up, 0, 0
+          :scare_update
+            mov @TMP, 2
+            sub @TMP, b
+            mov b, @TMP
+            jlt @updata_priority, b, e
+
       :pass_up
     :pass_calc_priority
     inc g
@@ -319,5 +340,11 @@
 
 jeq @fin, 0, 0 ;終了
 :fin
+
+
+:inf
+  mov a, 1
+jeq @inf, 0, 0
+
 
 hlt
